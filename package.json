@@ -1,0 +1,54 @@
+{
+  "name": "hiddout-core",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "fastify": "^1.14.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.3.2",
+    "@babel/polyfill": "^7.2.5",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "babel-eslint": "^10.0.1",
+    "core-js": "^2.6.4",
+    "eslint": "^5.13.0",
+    "expect.js": "^0.3.1",
+    "flow-bin": "^0.92.1",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.10",
+    "prettier": "^1.16.4"
+  },
+  "scripts": {
+    "build": "babel ./src -d bin --copy-files",
+    "flow": "flow",
+    "lint": "eslint ./src",
+    "lint-fix": "eslint ./src --fix",
+    "start": "nodemon devScript/dev.js",
+    "test": "mocha test/**/*.test.js --require @babel/register && npm run lint && npm run flow check && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiddout/hiddout-core.git"
+  },
+  "author": "",
+  "license": "AFL-3.0",
+  "bugs": {
+    "url": "https://github.com/hiddout/hiddout-core/issues"
+  },
+  "homepage": "https://github.com/hiddout/hiddout-core#readme",
+  "prettier": {
+    "useTabs": true,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "arrowParens": "always",
+    "parser": "flow"
+  }
+}
