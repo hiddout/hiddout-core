@@ -1,7 +1,7 @@
 //@flow
 import fastify from 'fastify';
 
-type LOMSServerPropsType = {
+type HiddoutPropsType = {
 	port?: number,
 };
 
@@ -9,7 +9,7 @@ class HiddoutCore {
 	_isStart: boolean;
 	_port: number;
 
-	constructor(props: LOMSServerPropsType) {
+	constructor(props: HiddoutPropsType) {
 		this._isStart = false;
 		this._port = props.port || 3000;
 	}
