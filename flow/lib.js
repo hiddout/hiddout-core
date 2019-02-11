@@ -1,3 +1,5 @@
+declare var fastify: any;
+
 declare module 'fastify' {
 	declare export default any;
 }
