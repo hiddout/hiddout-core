@@ -1,10 +1,10 @@
 //@flow
-
+import type fastify from 'fastify';
 import MongoClient from 'mongodb'
 
 import { dbUrl, dbName } from '../config/dbconfig'
 
-async function get_post_handler(req, reply) {
+async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		console.log("Connected correctly to server");
@@ -17,7 +17,7 @@ async function get_post_handler(req, reply) {
 	}
 };
 
-async function add_post_handler(req, reply) {
+async function addPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		console.log("Connected correctly to server");
@@ -33,9 +33,9 @@ async function add_post_handler(req, reply) {
 	}
 };
 
-function posts(fastify, opts, next) {
-	fastify.get('/posts', get_post_handler);
-	fastify.post('/posts', add_post_handler);
+function posts(fastify: fastify, opts: Object, next: ()=> any):void{
+	fastify.get('/posts', getPostHandler);
+	fastify.post('/posts', addPostHandler);
 	next();
 }
 
