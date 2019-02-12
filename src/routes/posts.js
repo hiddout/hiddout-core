@@ -1,41 +1,40 @@
 //@flow
+import MongoClient from 'mongodb';
 
-import MongoClient from 'mongodb'
+import { dbUrl, dbName } from '../config/dbconfig';
 
-import { dbUrl, dbName } from '../config/dbconfig'
-
-async function get_post_handler(req, reply) {
+async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		console.log("Connected correctly to server");
+		console.log('Connected correctly to server');
 		const db = client.db(dbName);
-		let r = await db.collection("posts").find({}).toArray();
+		let r = await db.collection('posts').find({}).toArray();
 		reply.type('application/json').code(200);
 		return { hello: r };
 	} catch (err) {
 		console.log(err.stack);
 	}
-};
+}
 
-async function add_post_handler(req, reply) {
+async function addPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		console.log("Connected correctly to server");
+		console.log('Connected correctly to server');
 		const db = client.db(dbName);
-		let r = await db.collection("posts").insertOne({
+		let r = await db.collection('posts').insertOne({
 			title: req.body.title,
-			content: req.body.content
+			content: req.body.content,
 		});
 		reply.type('application/json').code(200);
 		return { hello: r };
 	} catch (err) {
 		console.log(err.stack);
 	}
-};
+}
 
-function posts(fastify, opts, next) {
-	fastify.get('/posts', get_post_handler);
-	fastify.post('/posts', add_post_handler);
+function posts(fastify: fastify, opts: Object, next: ()=> any):void{
+	fastify.get('/posts', getPostHandler);
+	fastify.post('/posts', addPostHandler);
 	next();
 }
 
