@@ -6,11 +6,15 @@ import { dbUrl, dbName } from '../config/dbconfig';
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		console.log('Connected correctly to server');
 		const db = client.db(dbName);
-		let r = await db.collection('posts').find({}).toArray();
+		let r;
+		if (req.query.board == null) {
+			r = await db.collection('posts').find({}).toArray();	
+		} else {
+			r = await db.collection('posts').find({ 'board': { $eq: req.query.board } }).toArray();	
+		}
 		reply.type('application/json').code(200);
-		return { hello: r };
+		return r;
 	} catch (err) {
 		console.log(err.stack);
 	}
@@ -19,22 +23,75 @@ async function getPostHandler(req: Object, reply: Object): Object {
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		console.log('Connected correctly to server');
 		const db = client.db(dbName);
-		let r = await db.collection('posts').insertOne({
-			title: req.body.title,
-			content: req.body.content,
-		});
-		reply.type('application/json').code(200);
-		return { hello: r };
+		
+		if (req.body.postid == null) {
+			let timenow = new Date();
+			let r = await db.collection('posts').insertOne({
+				title: req.body.title,
+				content: req.body.content,
+				board: req.body.board,
+				userid: req.body.userid,
+				createtime: timenow,
+				lastupdatetime: timenow,
+			});
+			reply.type('application/json').code(200);
+			return { 'msg': "POST_ADD_SUCCESS" };	
+		}
 	} catch (err) {
 		console.log(err.stack);
 	}
 }
 
 function posts(fastify: fastify, opts: Object, next: ()=> any):void{
-	fastify.get('/posts', getPostHandler);
-	fastify.post('/posts', addPostHandler);
+	fastify.route({
+		method: 'GET',
+		url: '/posts',
+		schema: {
+			querystring: {
+				board: { type: 'string' },
+			},
+			response: {
+				200: {
+					type: 'array',
+					items: {
+						type: 'object',
+						properties: {
+							title: { type: 'string' },
+							content: { type: 'string' },
+							board: { type: 'string' },
+							userid: { type: 'string' },
+							createtime: { type: 'string' },
+							lastupdatetime: { type: 'string' },
+						},
+    				},
+				},
+			},
+		},
+		handler: getPostHandler,
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/posts',
+		schema: {
+			querystring: {
+				title: { type: 'string' },
+				content: { type: 'string' },
+				board: { type: 'string' },
+				userid: { type: 'string' }
+			},
+			response: {
+				200: {
+					type: 'object',
+					properties: {
+						msg: { type: 'string' },
+					},
+				},
+			},
+		},
+		handler: addPostHandler,
+	});
 	next();
 }
 
