@@ -14,9 +14,11 @@ async function getPostHandler(req: Object, reply: Object): Object {
 			r = await db.collection('posts').find({ 'board': { $eq: req.query.board } }).toArray();	
 		}
 		reply.type('application/json').code(200);
-		return r;
+		return { 'posts': r, 'msg': 'SUCCESS' };
 	} catch (err) {
 		console.log(err.stack);
+		reply.type('application/json').code(200);
+		return { 'posts': null, 'msg': err.name };
 	}
 }
 
@@ -35,16 +37,13 @@ async function addPostHandler(req: Object, reply: Object): Object {
 				createtime: timenow,
 				lastupdatetime: timenow,
 			});
-			if ('writeConcernError' in r) {
-				reply.type('application/json').code(500);
-				return { 'nInserted': 0, 'msg': 'DB_INSERT_ERROR' };
-			} else {
-				reply.type('application/json').code(200);
-				return { 'nInserted': r.nInserted, 'msg': 'SUCCESS' };
-			}
+			reply.type('application/json').code(200);
+			return { 'insertedId': r.insertedId, 'msg': 'SUCCESS' };
 		}
 	} catch (err) {
 		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { 'insertedId': null, 'msg': err.errmsg };
 	}
 }
 
@@ -57,17 +56,23 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				board: { type: 'string' },
 			},
 			response: {
-				200: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							title: { type: 'string' },
-							content: { type: 'string' },
-							board: { type: 'string' },
-							userid: { type: 'string' },
-							createtime: { type: 'string' },
-							lastupdatetime: { type: 'string' },
+				'200': {
+					type: 'object',
+					properties: {
+						msg: { type: 'string' },
+						posts: {
+							type: 'array',
+							items: {
+								type: 'object',
+								properties: {
+									title: { type: 'string' },
+									content: { type: 'string' },
+									board: { type: 'string' },
+									userid: { type: 'string' },
+									createtime: { type: 'string' },
+									lastupdatetime: { type: 'string' },
+								},
+							},
 						},
 					},
 				},
@@ -87,10 +92,10 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				userid: { type: 'string' },
 			},
 			response: {
-				200: {
+				'200': {
 					type: 'object',
 					properties: {
-						nInserted: { type: 'int' },
+						insertedId: { type: 'string' },
 						msg: { type: 'string' },
 					},
 				},
@@ -98,6 +103,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 		},
 		handler: addPostHandler,
 	});
+
 	next();
 }
 
