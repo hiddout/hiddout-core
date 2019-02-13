@@ -35,8 +35,13 @@ async function addPostHandler(req: Object, reply: Object): Object {
 				createtime: timenow,
 				lastupdatetime: timenow,
 			});
-			reply.type('application/json').code(200);
-			return { 'msg': "POST_ADD_SUCCESS" };	
+			if ('writeConcernError' in r) {
+				reply.type('application/json').code(500);
+				return { 'nInserted': 0, 'msg': 'DB_INSERT_ERROR' };
+			} else {
+				reply.type('application/json').code(200);
+				return { 'nInserted': r.nInserted, 'msg': 'SUCCESS' };
+			}
 		}
 	} catch (err) {
 		console.log(err.stack);
@@ -64,7 +69,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 							createtime: { type: 'string' },
 							lastupdatetime: { type: 'string' },
 						},
-    				},
+					},
 				},
 			},
 		},
@@ -79,12 +84,13 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				title: { type: 'string' },
 				content: { type: 'string' },
 				board: { type: 'string' },
-				userid: { type: 'string' }
+				userid: { type: 'string' },
 			},
 			response: {
 				200: {
 					type: 'object',
 					properties: {
+						nInserted: { type: 'int' },
 						msg: { type: 'string' },
 					},
 				},
