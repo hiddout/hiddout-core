@@ -1,7 +1,8 @@
 //@flow
-
+import * as path from 'path';
 import fastify from 'fastify';
-import fastifyswagger from 'fastify-swagger';
+import fastifySwagger from 'fastify-swagger';
+import fastifyStatic from 'fastify-static';
 
 import posts from './routes/posts';
 import swaggerOptions from './config/swagger';
@@ -25,11 +26,15 @@ class HiddoutCore {
 
 		this._fastify = fastify();
 
-		this._fastify.register(fastifyswagger, swaggerOptions);
+		this._fastify.register(fastifySwagger, swaggerOptions);
+
+		this._fastify.register(fastifyStatic, {
+			root: path.join(__dirname, '../public'),
+			prefix: '/public/', // optional: default '/'
+		});
 
 		this._fastify.get('/', async (request, reply) => {
-			reply.type('application/json').code(200);
-			return { hello: 'world' };
+			reply.sendFile('index.html'); // serving path.join(__dirname, 'public', 'index.html') directly
 		});
 
 		this._fastify.register(posts);

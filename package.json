@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "fastify": "^1.14.1",
+    "fastify-static": "^1.1.0",
     "fastify-swagger": "^1.2.0",
     "mongodb": "^3.1.13"
   },
@@ -31,7 +32,8 @@
     "flow": "flow",
     "lint": "eslint ./src",
     "lint-fix": "eslint ./src --fix",
-    "start": "nodemon devScript/dev.js",
+    "start": "node start.js",
+    "dev": "nodemon devScript/dev.js",
     "test": "mocha test/**/*.test.js --require @babel/register && npm run lint && npm run flow check && npm run build"
   },
   "repository": {
