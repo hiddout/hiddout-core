@@ -11,3 +11,7 @@ declare module 'mongodb' {
 declare module 'fastify-swagger' {
 	declare export default any;
 }
+
+declare module 'fastify-static' {
+	declare export default any;
+}
