@@ -37,7 +37,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 				{ upsert: true },
 			);
 			reply.type('application/json').code(200);
-			return { 'nModified': r.result.nModified, 'msg': 'SUCCESS' };
+			return { 'ok': r.result.ok, 'msg': 'SUCCESS' };
 		}
 	} catch (err) {
 		console.log(err.stack);
@@ -87,7 +87,7 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 				'200': {
 					type: 'object',
 					properties: {
-						nModified: { type: 'string' },
+						ok: { type: 'string' },
 						msg: { type: 'string' },
 					},
 				},

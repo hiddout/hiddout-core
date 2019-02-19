@@ -26,3 +26,4 @@ db.posts.insert({ "title": "其他2", "content": "其他内容2", "board": "life
 db.posts.insert({ "title": "其他3", "content": "其他内容3", "board": "life", "userid": "tiexin" })
 db.posts.insert({ "title": "其他4", "content": "其他内容4", "board": "life", "userid": "tiexin" })
 db.posts.insert({ "title": "其他5", "content": "其他内容5", "board": "life", "userid": "tiexin" })
+
