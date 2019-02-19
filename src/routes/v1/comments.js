@@ -3,69 +3,64 @@ import MongoClient from 'mongodb';
 
 import { dbUrl, dbName } from '../../config/dbconfig';
 
-async function getPostHandler(req: Object, reply: Object): Object {
+async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		const db = client.db(dbName);
-		const board: string = req.query.board;
-		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
-		const r = await db.collection('posts').find(queryObject).toArray();
+		const queryObject: Object = { 'postid': { $eq: req.params.postId  }};
+		const r = await db.collection('comments').findOne(queryObject);
 		reply.type('application/json').code(200);
-		return { 'posts': r, 'msg': 'SUCCESS' };
+		return { 'comments': r.comments, 'msg': 'SUCCESS' };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
-		return { 'posts': null, 'msg': err.name };
+		return { 'comments': null, 'msg': err.name };
 	}
 }
 
-async function addPostHandler(req: Object, reply: Object): Object {
+async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		const db = client.db(dbName);
-		
 		if (req.body.postid == null) {
 			const timenow = new Date().getTime();
-			let r = await db.collection('posts').insertOne({
-				title: req.body.title,
-				content: req.body.content,
-				board: req.body.board,
-				userid: req.body.userid,
-				createtime: timenow,
-				lastupdatetime: timenow,
-			});
+			let r = await db.collection('comments').update(
+				{ postid: req.params.postId },
+				{ $push: { comments: {
+					content: req.body.content,
+					userid: req.body.userid,
+					createtime: timenow,
+					lastupdatetime: timenow,
+					}}
+				},
+				{ upsert: true },
+			);
 			reply.type('application/json').code(200);
-			return { 'insertedId': r.insertedId, 'msg': 'SUCCESS' };
+			return { 'nModified': r.result.nModified, 'msg': 'SUCCESS' };
 		}
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { 'insertedId': null, 'msg': err.errmsg };
+		return { 'msg': err.errmsg };	
 	}
 }
 
-function posts(fastify: fastify, opts: Object, next: ()=> any):void{
+function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 	fastify.route({
 		method: 'GET',
-		url: '/posts',
+		url: '/posts/:postId/comments',
 		schema: {
-			querystring: {
-				board: { type: 'string' },
-			},
 			response: {
 				'200': {
 					type: 'object',
 					properties: {
 						msg: { type: 'string' },
-						posts: {
+						comments: {
 							type: 'array',
 							items: {
 								type: 'object',
 								properties: {
-									_id: { type: 'string' },
-									title: { type: 'string' },
 									content: { type: 'string' },
-									board: { type: 'string' },
 									userid: { type: 'string' },
 									createtime: { type: 'string' },
 									lastupdatetime: { type: 'string' },
@@ -76,33 +71,31 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				},
 			},
 		},
-		handler: getPostHandler,
+		handler: getCommentsHandler,
 	});
 
 	fastify.route({
 		method: 'POST',
-		url: '/posts',
+		url: '/posts/:postId/comments',
 		schema: {
 			querystring: {
-				title: { type: 'string' },
 				content: { type: 'string' },
-				board: { type: 'string' },
 				userid: { type: 'string' },
 			},
 			response: {
 				'200': {
 					type: 'object',
 					properties: {
-						insertedId: { type: 'string' },
+						nModified: { type: 'string' },
 						msg: { type: 'string' },
 					},
 				},
 			},
 		},
-		handler: addPostHandler,
+		handler: addCommentHandler,
 	});
 
 	next();
 }
 
-export default posts;
+export default comments;

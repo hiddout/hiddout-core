@@ -7,7 +7,7 @@ async function clean(req: Object, reply: Object): Object {
 	const collections = ['posts', 'boards', 'users', 'comments'];
 	
 	for (let collection of collections) {
-		let client;
+		let client: MongoClient = null;
 		try {
 			client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		} catch (err) {
