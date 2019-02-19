@@ -7,12 +7,9 @@ async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 		const db = client.db(dbName);
-		let r;
-		if (req.query.board == null) {
-			r = await db.collection('posts').find({}).toArray();	
-		} else {
-			r = await db.collection('posts').find({ 'board': { $eq: req.query.board } }).toArray();	
-		}
+		const board: string = req.query.board;
+		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
+		const r = await db.collection('posts').find(queryObject).toArray();
 		reply.type('application/json').code(200);
 		return { 'posts': r, 'msg': 'SUCCESS' };
 	} catch (err) {
@@ -28,7 +25,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 		const db = client.db(dbName);
 		
 		if (req.body.postid == null) {
-			let timenow = new Date();
+			const timenow = new Date().getTime();
 			let r = await db.collection('posts').insertOne({
 				title: req.body.title,
 				content: req.body.content,
