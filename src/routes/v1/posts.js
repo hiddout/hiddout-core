@@ -1,7 +1,7 @@
 //@flow
 import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../config/dbconfig';
+import { dbUrl, dbName } from '../../config/dbconfig';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
@@ -62,6 +62,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 							items: {
 								type: 'object',
 								properties: {
+									_id: { type: 'string' },
 									title: { type: 'string' },
 									content: { type: 'string' },
 									board: { type: 'string' },

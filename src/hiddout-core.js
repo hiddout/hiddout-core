@@ -4,7 +4,8 @@ import fastify from 'fastify';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import posts from './routes/posts';
+import boards from './routes/v1/boards';
+import posts from './routes/v1/posts';
 import swaggerOptions from './config/swagger';
 
 type HiddoutCorePropsType = {
@@ -37,7 +38,8 @@ class HiddoutCore {
 			reply.sendFile('index.html'); // serving path.join(__dirname, 'public', 'index.html') directly
 		});
 
-		this._fastify.register(posts);
+		this._fastify.register(boards, { prefix: '/api/v1' });
+		this._fastify.register(posts, { prefix: '/api/v1' });
 
 		this._fastify.listen(this._port, (err, address) => {
 			if (err) {throw err;}
