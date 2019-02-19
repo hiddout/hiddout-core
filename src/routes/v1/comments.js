@@ -10,7 +10,8 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 		const queryObject: Object = { 'postid': { $eq: req.params.postId  }};
 		const r = await db.collection('comments').findOne(queryObject);
 		reply.type('application/json').code(200);
-		return { 'comments': r.comments, 'msg': 'SUCCESS' };
+		const comments = r ? r.comments : {};
+		return { 'comments': comments, 'msg': 'SUCCESS' };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
@@ -31,7 +32,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 					userid: req.body.userid,
 					createtime: timenow,
 					lastupdatetime: timenow,
-					}}
+					}},
 				},
 				{ upsert: true },
 			);
