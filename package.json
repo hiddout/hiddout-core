@@ -34,7 +34,9 @@
     "lint-fix": "eslint ./src --fix",
     "start": "node start.js",
     "dev": "nodemon devScript/dev.js",
-    "test": "mocha test/**/*.test.js --require @babel/register && npm run lint && npm run flow check && npm run build"
+    "test": "mocha test/**/*.test.js --require @babel/register && npm run lint && npm run flow check && npm run build",
+    "dbclean": "mongo ./dbscript/clean.js",
+    "dbinit": "mongo ./dbscript/init.js"
   },
   "repository": {
     "type": "git",
