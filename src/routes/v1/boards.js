@@ -1,7 +1,7 @@
 //@flow
 import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../config/dbconfig';
+import { dbUrl, dbName } from '../../devConfig/dbconfig';
 
 async function getBoardsHandler(req: Object, reply: Object): Object {
 	try {
@@ -47,4 +47,4 @@ function boards(fastify: fastify, opts: Object, next: ()=> any):void{
 	next();
 }
 
-export default boards;
+export {boards};

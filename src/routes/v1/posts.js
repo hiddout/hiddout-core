@@ -1,7 +1,7 @@
 //@flow
 import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../config/dbconfig';
+import { dbUrl, dbName } from '../../devConfig/dbconfig';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
@@ -25,17 +25,17 @@ async function addPostHandler(req: Object, reply: Object): Object {
 		const db = client.db(dbName);
 		
 		if (req.body.postid == null) {
-			const timenow = new Date().getTime();
-			let r = await db.collection('posts').insertOne({
+			const timeNow = new Date().getTime();
+			const result = await db.collection('posts').insertOne({
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
 				userid: req.body.userid,
-				createtime: timenow,
-				lastupdatetime: timenow,
+				createtime: timeNow,
+				lastupdatetime: timeNow,
 			});
 			reply.type('application/json').code(200);
-			return { 'insertedId': r.insertedId, 'msg': 'SUCCESS' };
+			return { 'insertedId': result.insertedId, 'msg': 'SUCCESS' };
 		}
 	} catch (err) {
 		console.log(err.stack);
@@ -105,4 +105,4 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 	next();
 }
 
-export default posts;
+export {posts};

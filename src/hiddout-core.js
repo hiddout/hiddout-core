@@ -4,10 +4,9 @@ import fastify from 'fastify';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import boards from './routes/v1/boards';
-import posts from './routes/v1/posts';
-import comments from './routes/v1/comments';
-import swaggerOptions from './config/swagger';
+import {boards, comments, posts, signup} from './routes/v1';
+
+import swaggerOptions from './devConfig/swagger';
 
 type HiddoutCorePropsType = {
 	port?: number,
@@ -40,8 +39,9 @@ class HiddoutCore {
 		});
 
 		this._fastify.register(boards, { prefix: '/api/v1' });
-		this._fastify.register(posts, { prefix: '/api/v1' });
 		this._fastify.register(comments, { prefix: '/api/v1' });
+		this._fastify.register(posts, { prefix: '/api/v1' });
+		this._fastify.register(signup, { prefix: '/api/v1' });
 
 		this._fastify.listen(this._port, (err, address) => {
 			if (err) {throw err;}

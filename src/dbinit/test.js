@@ -1,7 +1,7 @@
 //@flow
 import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../config/dbconfig';
+import { dbUrl, dbName } from '../devConfig/dbconfig';
 
 async function clean(req: Object, reply: Object): Object {
 	const collections = ['posts', 'boards', 'users', 'comments'];

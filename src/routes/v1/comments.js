@@ -1,7 +1,7 @@
 //@flow
 import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../config/dbconfig';
+import { dbUrl, dbName } from '../../devConfig/dbconfig';
 
 async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
@@ -99,4 +99,4 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 	next();
 }
 
-export default comments;
+export {comments};

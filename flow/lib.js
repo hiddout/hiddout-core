@@ -15,3 +15,7 @@ declare module 'fastify-swagger' {
 declare module 'fastify-static' {
 	declare export default any;
 }
+
+declare module 'sjcl' {
+	declare export default any;
+}
