@@ -1,5 +1,5 @@
-const * as fsExtra from 'fs-extra';
-const * as path from 'path';
+import * as fsExtra from 'fs-extra';
+import * as path from 'path';
 
 const rootPath = process.cwd();
 
