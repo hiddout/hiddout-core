@@ -1,5 +1,5 @@
-const fsExtra = require('fs-extra');
-const path = require('path');
+const * as fsExtra from 'fs-extra';
+const * as path from 'path';
 
 const rootPath = process.cwd();
 
