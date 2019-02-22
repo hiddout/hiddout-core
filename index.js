@@ -1,7 +1,7 @@
 //@flow
 
 import { HiddoutCore } from './src/hiddout-core';
-import { port } from './src/devConfig/config.js';
+import { port } from './src/config';
 
 const server = new HiddoutCore({ port: port });
 

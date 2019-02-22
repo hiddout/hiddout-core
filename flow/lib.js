@@ -18,4 +18,7 @@ declare module 'fastify-static' {
 
 declare module 'sjcl' {
 	declare export default any;
+	declare export var random: any;
+	declare export var codec: any;
+	declare export var misc: any;
 }

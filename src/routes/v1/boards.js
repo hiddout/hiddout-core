@@ -1,23 +1,20 @@
 //@flow
-import MongoClient from 'mongodb';
-
-import { dbUrl, dbName } from '../../devConfig/dbconfig';
+import { dbCollectionFind } from '../../db/client';
+import { SUCCESS } from '../../static/serverMessage';
 
 async function getBoardsHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-		const r = await db.collection('boards').find({}).toArray();
+		const result = await dbCollectionFind('boards', {});
 		reply.type('application/json').code(200);
-		return { 'boards': r, 'msg': 'SUCCESS' };
+		return { boards: result, msg: SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
-		return { 'boards': null, 'msg': err.name };
+		return { boards: null, msg: err.name };
 	}
 }
 
-function boards(fastify: fastify, opts: Object, next: ()=> any):void{
+function boards(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'GET',
 		url: '/boards',
@@ -47,4 +44,4 @@ function boards(fastify: fastify, opts: Object, next: ()=> any):void{
 	next();
 }
 
-export {boards};
+export { boards };

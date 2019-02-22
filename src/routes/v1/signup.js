@@ -1,16 +1,12 @@
 // @flow
-import MongoClient from 'mongodb';
 
 import * as sjcl from 'sjcl';
 
-import { dbUrl, dbName } from '../../devConfig/dbconfig';
+import { SUCCESS } from '../../static/serverMessage';
+import { dbCollectionInsertOne } from '../../db/client';
 
 async function signUpHandler(req: Object, reply: Object): Object {
 	try {
-		//TODO warp a dbClient class
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-
 		const timeNow = new Date().getTime();
 
 		const saltBits = sjcl.random.randomWords(16);
@@ -22,7 +18,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 
 		// const re = sjcl.codec.hex.toBits(salt);
 
-		await db.collection('users').insertOne({
+		await dbCollectionInsertOne('users', {
 			name: req.body.name,
 			userKey: userKey,
 			slat: salt,
@@ -30,7 +26,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 		});
 
 		reply.type('application/json').code(200);
-		return { 'msg': 'SUCCESS' };
+		return { 'msg': SUCCESS };
 
 	} catch (err) {
 		console.log(err.stack);

@@ -1,17 +1,15 @@
 //@flow
-import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../devConfig/dbconfig';
+import { SUCCESS } from '../../static/serverMessage';
+import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
 		const board: string = req.query.board;
 		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
-		const r = await db.collection('posts').find(queryObject).toArray();
+		const result = dbCollectionFind('posts',queryObject);
 		reply.type('application/json').code(200);
-		return { 'posts': r, 'msg': 'SUCCESS' };
+		return { 'posts': result, 'msg': SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
@@ -21,12 +19,10 @@ async function getPostHandler(req: Object, reply: Object): Object {
 
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-		
 		if (req.body.postid == null) {
 			const timeNow = new Date().getTime();
-			const result = await db.collection('posts').insertOne({
+
+			const result = dbCollectionInsertOne('posts',{
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
@@ -34,8 +30,9 @@ async function addPostHandler(req: Object, reply: Object): Object {
 				createtime: timeNow,
 				lastupdatetime: timeNow,
 			});
+
 			reply.type('application/json').code(200);
-			return { 'insertedId': result.insertedId, 'msg': 'SUCCESS' };
+			return { 'insertedId': result.insertedId, 'msg': SUCCESS };
 		}
 	} catch (err) {
 		console.log(err.stack);

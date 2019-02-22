@@ -6,7 +6,7 @@ import fastifyStatic from 'fastify-static';
 
 import {boards, comments, posts, signup} from './routes/v1';
 
-import swaggerOptions from './devConfig/swagger';
+import {swaggerOptions} from './config';
 
 type HiddoutCorePropsType = {
 	port?: number,
