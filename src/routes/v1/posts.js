@@ -22,7 +22,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 		if (req.body.postid == null) {
 			const timeNow = new Date().getTime();
 
-			const result = dbCollectionInsertOne('posts',{
+			const result = await dbCollectionInsertOne('post',{
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
@@ -37,7 +37,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { 'insertedId': null, 'msg': err.errmsg };
+		return { 'insertedId': null, 'msg': err.stack };
 	}
 }
 
