@@ -6,6 +6,7 @@ import * as sjcl from 'sjcl';
 import fastify from 'fastify';
 import fastifyJWT from 'fastify-jwt';
 import fastifyAuth from 'fastify-auth';
+import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
@@ -43,7 +44,7 @@ class HiddoutCore {
 			.register(fastifyAuth);
 
 		this._fastify
-			.decorate('verifyJWT',async (request, reply, done) => {
+			.decorate('verifyJWT', async (request, reply, done) => {
 				if (!request.req.headers['authorization']) {
 					return done(new Error('Missing token header'));
 				}
@@ -87,14 +88,13 @@ class HiddoutCore {
 				}
 			})
 			.decorate('verifyPWH', async (request, reply, done) => {
-
 				try {
 					const userInfo = await dbCollectionFind('users', {
 						user: { $eq: request.body.user },
 					});
 
 					if (!userInfo.length) {
-						return done(new Error('1 User/Password not valid'));
+						return done(new Error('User/Password not valid'));
 					}
 
 					const saltBits = sjcl.codec.hex.toBits(userInfo[0].salt);
@@ -107,7 +107,7 @@ class HiddoutCore {
 					const userKey = sjcl.codec.hex.fromBits(derivedKey);
 
 					if (userKey !== userInfo[0].userKey) {
-						return done(new Error('2 User/Password not valid'));
+						return done(new Error('User/Password not valid'));
 					}
 
 					done();
@@ -116,7 +116,13 @@ class HiddoutCore {
 				}
 			});
 
-		this._fastify.register(fastifySwagger, swaggerOptions);
+		this._fastify
+			.register(fastifySwagger, swaggerOptions)
+			.register(fastifyRateLimit, {
+				max: 3,
+				timeWindow: 5000,
+				whitelist: ['127.0.0.1'],
+			});
 
 		this._fastify.register(fastifyStatic, {
 			root: path.join(__dirname, '../public'),
