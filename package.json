@@ -5,6 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "fastify": "^1.14.1",
+    "fastify-auth": "^0.4.0",
+    "fastify-jwt": "^0.9.3",
+    "fastify-rate-limit": "^1.0.0",
     "fastify-static": "^1.1.0",
     "fastify-swagger": "^1.2.0",
     "fs-extra": "^7.0.1",

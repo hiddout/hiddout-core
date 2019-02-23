@@ -9,7 +9,7 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 		const result = await dbCollectionFindOne('comments', queryObject);
 		reply.type('application/json').code(200);
 		const comments = result ? result.comments : {};
-		return { comments: comments, msg: SUCCESS };
+		return { comments: comments,msg: SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
@@ -19,7 +19,7 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 
 async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
-		if (req.body.postid == null) {
+		if (!req.body.postid) {
 			const timeNow = new Date().getTime();
 			const result = await dbCollectionUpdateOne(
 				'comments',
@@ -72,6 +72,9 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
+		beforeHandler: fastify.auth([
+			fastify.verifyJWT,
+		]),
 		handler: getCommentsHandler,
 	});
 
@@ -93,6 +96,10 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
+		beforeHandler: fastify.auth([
+			fastify.verifyJWT,
+			fastify.verifyPWH,
+		]),
 		handler: addCommentHandler,
 	});
 

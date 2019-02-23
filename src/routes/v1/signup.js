@@ -19,40 +19,50 @@ async function signUpHandler(req: Object, reply: Object): Object {
 		// const re = sjcl.codec.hex.toBits(salt);
 
 		await dbCollectionInsertOne('users', {
-			name: req.body.name,
+			user: req.body.user,
 			userKey: userKey,
-			slat: salt,
+			salt: salt,
 			joinTime: timeNow,
 		});
 
+		const token = await this.jwt.sign(req.body);
+
 		reply.type('application/json').code(200);
-		return { 'msg': SUCCESS };
+		return { token:token, msg: SUCCESS };
 
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { 'msg': err.errmsg };
+		return { msg: err.errmsg };
 	}
 }
 
-function signup(fastify: fastify, opts: Object, next: ()=> any):void {
+function signup(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'POST',
 		url: '/signup',
 		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					user: { type: 'string' },
+					pwh: { type: 'string' },
+				},
+				required: ['user', 'pwh'],
+			},
 			response: {
 				'200': {
 					type: 'object',
 					properties: {
-						msg: { type: 'string' },
+						token: { type: 'string' },
 					},
 				},
 			},
 		},
-		handler: signUpHandler,
+		handler: signUpHandler.bind(fastify),
 	});
 
 	next();
 }
 
-export {signup};
+export { signup };

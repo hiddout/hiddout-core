@@ -3,9 +3,6 @@ import MongoClient from 'mongodb';
 
 import { dbUrl, dbName } from '../config';
 
-const DB_URL = dbUrl, DB_NAME = dbName;
-
-
 export async function dbCollectionFind(collection: string, queryObject: Object): any {
 	const db = await getDB();
 	return await db.collection(collection).find(queryObject).toArray();

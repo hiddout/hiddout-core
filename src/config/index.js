@@ -1,3 +1,5 @@
+// @flow
+
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 
