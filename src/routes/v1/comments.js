@@ -5,7 +5,7 @@ import { dbCollectionFindOne, dbCollectionUpdateOne } from '../../db/client';
 
 async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
-		const queryObject: Object = { postid: { $eq: req.params.postId } };
+		const queryObject: Object = { postId: { $eq: req.params.postId } };
 		const result = await dbCollectionFindOne('comments', queryObject);
 		reply.type('application/json').code(200);
 		const comments = result ? result.comments : {};
@@ -19,18 +19,18 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 
 async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
-		if (!req.body.postid) {
+		if (!req.body.postId) {
 			const timeNow = new Date().getTime();
 			const result = await dbCollectionUpdateOne(
 				'comments',
-				{ postid: req.params.postId },
+				{ postId: req.params.postId },
 				{
 					$push: {
 						comments: {
 							content: req.body.content,
-							userid: req.body.userid,
-							createtime: timeNow,
-							lastupdatetime: timeNow,
+							userId: req.body.userId,
+							createTime: timeNow,
+							lastUpdateTime: timeNow,
 						},
 					},
 				},
@@ -62,9 +62,9 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 								type: 'object',
 								properties: {
 									content: { type: 'string' },
-									userid: { type: 'string' },
-									createtime: { type: 'string' },
-									lastupdatetime: { type: 'string' },
+									userId: { type: 'string' },
+									createTime: { type: 'string' },
+									lastUpdateTime: { type: 'string' },
 								},
 							},
 						},
@@ -84,7 +84,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 		schema: {
 			querystring: {
 				content: { type: 'string' },
-				userid: { type: 'string' },
+				userId: { type: 'string' },
 			},
 			response: {
 				'200': {

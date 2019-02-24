@@ -22,13 +22,13 @@ async function addPostHandler(req: Object, reply: Object): Object {
 		if (req.body.postid == null) {
 			const timeNow = new Date().getTime();
 
-			const result = await dbCollectionInsertOne('post',{
+			const result = await dbCollectionInsertOne('posts',{
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
-				userid: req.body.userid,
-				createtime: timeNow,
-				lastupdatetime: timeNow,
+				userId: req.body.userId,
+				createTime: timeNow,
+				lastUpdateTime: timeNow,
 			});
 
 			reply.type('application/json').code(200);
@@ -63,9 +63,9 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 									title: { type: 'string' },
 									content: { type: 'string' },
 									board: { type: 'string' },
-									userid: { type: 'string' },
-									createtime: { type: 'string' },
-									lastupdatetime: { type: 'string' },
+									userId: { type: 'string' },
+									createTime: { type: 'string' },
+									lastUpdateTime: { type: 'string' },
 								},
 							},
 						},
@@ -84,7 +84,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				title: { type: 'string' },
 				content: { type: 'string' },
 				board: { type: 'string' },
-				userid: { type: 'string' },
+				userId: { type: 'string' },
 			},
 			response: {
 				'200': {
