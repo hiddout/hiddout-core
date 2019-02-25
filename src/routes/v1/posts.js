@@ -1,17 +1,15 @@
 //@flow
-import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../config/dbconfig';
+import { SUCCESS } from '../../static/serverMessage';
+import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
 		const board: string = req.query.board;
 		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
-		const r = await db.collection('posts').find(queryObject).toArray();
+		const result = dbCollectionFind('posts',queryObject);
 		reply.type('application/json').code(200);
-		return { 'posts': r, 'msg': 'SUCCESS' };
+		return { 'posts': result, 'msg': SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
@@ -21,26 +19,25 @@ async function getPostHandler(req: Object, reply: Object): Object {
 
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-		
 		if (req.body.postid == null) {
-			const timenow = new Date().getTime();
-			let r = await db.collection('posts').insertOne({
+			const timeNow = new Date().getTime();
+
+			const result = await dbCollectionInsertOne('posts',{
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
-				userid: req.body.userid,
-				createtime: timenow,
-				lastupdatetime: timenow,
+				userId: req.body.userId,
+				createTime: timeNow,
+				lastUpdateTime: timeNow,
 			});
+
 			reply.type('application/json').code(200);
-			return { 'insertedId': r.insertedId, 'msg': 'SUCCESS' };
+			return { 'insertedId': result.insertedId, 'msg': SUCCESS };
 		}
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { 'insertedId': null, 'msg': err.errmsg };
+		return { 'insertedId': null, 'msg': err.stack };
 	}
 }
 
@@ -66,9 +63,9 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 									title: { type: 'string' },
 									content: { type: 'string' },
 									board: { type: 'string' },
-									userid: { type: 'string' },
-									createtime: { type: 'string' },
-									lastupdatetime: { type: 'string' },
+									userId: { type: 'string' },
+									createTime: { type: 'string' },
+									lastUpdateTime: { type: 'string' },
 								},
 							},
 						},
@@ -87,7 +84,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				title: { type: 'string' },
 				content: { type: 'string' },
 				board: { type: 'string' },
-				userid: { type: 'string' },
+				userId: { type: 'string' },
 			},
 			response: {
 				'200': {
@@ -105,4 +102,4 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 	next();
 }
 
-export default posts;
+export {posts};

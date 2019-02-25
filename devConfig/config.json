@@ -1,0 +1,25 @@
+{
+	"port": 1234,
+	"dbUrl":"mongodb://localhost:27017/",
+	"dbName": "test",
+	"swaggerOptions":{
+		"routePrefix": "/documentation",
+		"exposeRoute": true,
+		"swagger": {
+			"info": {
+				"title": "Fastify API",
+				"description": "hiddout-core",
+				"version": "1.0.0"
+			},
+			"externalDocs": {
+				"url": "https://swagger.io",
+				"description": "Find more info here"
+			},
+			"host": "127.0.0.1:1234",
+			"schemes": ["http"],
+			"consumes": ["application/json"],
+			"produces": ["application/json"]
+		}
+	}
+}
+

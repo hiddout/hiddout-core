@@ -1,52 +1,52 @@
 //@flow
-import MongoClient from 'mongodb';
 
-import { dbUrl, dbName } from '../../config/dbconfig';
+import { SUCCESS } from '../../static/serverMessage';
+import { dbCollectionFindOne, dbCollectionUpdateOne } from '../../db/client';
 
 async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-		const queryObject: Object = { 'postid': { $eq: req.params.postId  }};
-		const r = await db.collection('comments').findOne(queryObject);
+		const queryObject: Object = { postId: { $eq: req.params.postId } };
+		const result = await dbCollectionFindOne('comments', queryObject);
 		reply.type('application/json').code(200);
-		const comments = r ? r.comments : {};
-		return { 'comments': comments, 'msg': 'SUCCESS' };
+		const comments = result ? result.comments : {};
+		return { comments: comments,msg: SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(200);
-		return { 'comments': null, 'msg': err.name };
+		return { comments: null, msg: err.name };
 	}
 }
 
 async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
-		const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
-		const db = client.db(dbName);
-		if (req.body.postid == null) {
-			const timenow = new Date().getTime();
-			let r = await db.collection('comments').update(
-				{ postid: req.params.postId },
-				{ $push: { comments: {
-					content: req.body.content,
-					userid: req.body.userid,
-					createtime: timenow,
-					lastupdatetime: timenow,
-					}},
+		if (!req.body.postId) {
+			const timeNow = new Date().getTime();
+			const result = await dbCollectionUpdateOne(
+				'comments',
+				{ postId: req.params.postId },
+				{
+					$push: {
+						comments: {
+							content: req.body.content,
+							userId: req.body.userId,
+							createTime: timeNow,
+							lastUpdateTime: timeNow,
+						},
+					},
 				},
 				{ upsert: true },
 			);
 			reply.type('application/json').code(200);
-			return { 'ok': r.result.ok, 'msg': 'SUCCESS' };
+			return { ok: result.result.ok, msg: SUCCESS };
 		}
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { 'msg': err.errmsg };	
+		return { msg: err.errmsg };
 	}
 }
 
-function comments(fastify: fastify, opts: Object, next: ()=> any):void{
+function comments(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'GET',
 		url: '/posts/:postId/comments',
@@ -62,9 +62,9 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 								type: 'object',
 								properties: {
 									content: { type: 'string' },
-									userid: { type: 'string' },
-									createtime: { type: 'string' },
-									lastupdatetime: { type: 'string' },
+									userId: { type: 'string' },
+									createTime: { type: 'string' },
+									lastUpdateTime: { type: 'string' },
 								},
 							},
 						},
@@ -72,6 +72,9 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 				},
 			},
 		},
+		beforeHandler: fastify.auth([
+			fastify.verifyJWT,
+		]),
 		handler: getCommentsHandler,
 	});
 
@@ -81,7 +84,7 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 		schema: {
 			querystring: {
 				content: { type: 'string' },
-				userid: { type: 'string' },
+				userId: { type: 'string' },
 			},
 			response: {
 				'200': {
@@ -93,10 +96,14 @@ function comments(fastify: fastify, opts: Object, next: ()=> any):void{
 				},
 			},
 		},
+		beforeHandler: fastify.auth([
+			fastify.verifyJWT,
+			fastify.verifyPWH,
+		]),
 		handler: addCommentHandler,
 	});
 
 	next();
 }
 
-export default comments;
+export { comments };

@@ -5,9 +5,14 @@
   "main": "index.js",
   "dependencies": {
     "fastify": "^1.14.1",
+    "fastify-auth": "^0.4.0",
+    "fastify-jwt": "^0.9.3",
+    "fastify-rate-limit": "^1.0.0",
     "fastify-static": "^1.1.0",
     "fastify-swagger": "^1.2.0",
-    "mongodb": "^3.1.13"
+    "fs-extra": "^7.0.1",
+    "mongodb": "^3.1.13",
+    "sjcl": "^1.0.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -35,8 +40,8 @@
     "start": "node start.js",
     "dev": "nodemon devScript/dev.js",
     "test": "mocha test/**/*.test.js --require @babel/register && npm run lint && npm run flow check && npm run build",
-    "dbclean": "mongo ./dbscript/clean.js",
-    "dbinit": "mongo ./dbscript/init.js"
+    "dbclean": "mongo ./devScript/dbClean.js",
+    "dbinit": "mongo ./devScript/dbInit.js"
   },
   "repository": {
     "type": "git",
