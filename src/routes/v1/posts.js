@@ -19,7 +19,7 @@ async function getPostHandler(req: Object, reply: Object): Object {
 
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
-		if (req.body.postid == null) {
+		if (req.body.postId == null) {
 			const timeNow = new Date().getTime();
 
 			const result = await dbCollectionInsertOne('posts',{
