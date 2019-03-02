@@ -8,6 +8,11 @@ declare module 'mongodb' {
 	declare export default any;
 }
 
+declare module 'hiddout-viewer' {
+	declare export default any;
+	declare export var HiddoutViewer: any;
+}
+
 declare module 'fastify-swagger' {
 	declare export default any;
 }
