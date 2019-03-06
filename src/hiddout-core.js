@@ -129,8 +129,8 @@ class HiddoutCore {
 			prefix: '/public/', // optional: default '/'
 		});
 
-		this._fastify.get('/', async (request, reply) => {
-			reply.sendFile('index.html'); // serving path.join(__dirname, 'public', 'index.html') directly
+		this._fastify.get('*', async (request, reply) => {
+			reply.sendFile('index.html');
 		});
 
 		this._fastify
