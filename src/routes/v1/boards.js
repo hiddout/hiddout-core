@@ -7,7 +7,7 @@ async function getBoardsHandler(req: Object, reply: Object): Object {
 	try {
 		const result = await dbCollectionFind('boards', {});
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response(req, { boards: result, msg: SUCCESS });
+		return HiddoutViewer.response({ boards: result, msg: SUCCESS });
 	} catch (err) {
 		console.log(err);
 		reply.type('application/json').code(200);
