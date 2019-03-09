@@ -32,7 +32,7 @@ class HiddoutCore {
 	start(): void {
 		this._isStart = true;
 
-		this._fastify = fastify();
+		this._fastify = fastify({ logger: true });
 
 		this._fastify
 			.register(fastifyJWT, {
@@ -82,7 +82,6 @@ class HiddoutCore {
 
 						done();
 					} catch (err) {
-						console.log(err.stack);
 						return done(new Error('Token not valid'));
 					}
 				}
@@ -112,7 +111,7 @@ class HiddoutCore {
 
 					done();
 				} catch (err) {
-					return done(err);
+					return done(new Error('User/Password not valid'));
 				}
 			});
 

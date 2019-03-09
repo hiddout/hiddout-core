@@ -67,7 +67,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 function signup(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'GET',
-		url: '/signup',
+		url: '/checkUser',
 		schema: {
 			querystring: {
 				user: { type: 'string' },
