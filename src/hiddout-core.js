@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as sjcl from 'sjcl';
 
 import fastify from 'fastify';
+import fastifyCORS from 'fastify-cors';
 import fastifyJWT from 'fastify-jwt';
 import fastifyAuth from 'fastify-auth';
 import fastifyRateLimit from 'fastify-rate-limit';
@@ -32,7 +33,9 @@ class HiddoutCore {
 	start(): void {
 		this._isStart = true;
 
-		this._fastify = fastify({ logger: true });
+		this._fastify = fastify();
+
+		this._fastify.register(fastifyCORS,{origin:['http://localhost:8080']});
 
 		this._fastify
 			.register(fastifyJWT, {
