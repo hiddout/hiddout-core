@@ -14,7 +14,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		if (!userInfo.length) {
 			reply.type('application/json').code(200);
-			return { status:1 ,token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG };
+			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 
 		const saltBits = sjcl.codec.hex.toBits(userInfo[0].salt);
@@ -25,9 +25,9 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		if(userKey === userInfo[0].userKey){
 			const token = await this.jwt.sign(req.body);
-			return HiddoutViewer.response({ status:0, token: token, msg: SUCCESS });
-		}else {
-			return HiddoutViewer.response({ status:1 ,token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
+			return HiddoutViewer.response({ token: token, msg: SUCCESS });
+		} else {
+			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 	}catch (err) {
 		console.error(err);
