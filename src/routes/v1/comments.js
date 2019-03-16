@@ -12,8 +12,8 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 		return { comments: comments,msg: SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
-		reply.type('application/json').code(200);
-		return { comments: null, msg: err.name };
+		reply.type('application/json').code(500);
+		return { msg: err.name };
 	}
 }
 
@@ -42,7 +42,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { msg: err.errmsg };
+		return { msg: err };
 	}
 }
 

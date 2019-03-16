@@ -12,8 +12,8 @@ async function getPostHandler(req: Object, reply: Object): Object {
 		return { 'posts': result, 'msg': SUCCESS };
 	} catch (err) {
 		console.log(err.stack);
-		reply.type('application/json').code(200);
-		return { 'posts': null, 'msg': err.name };
+		reply.type('application/json').code(500);
+		return { 'msg': err };
 	}
 }
 
