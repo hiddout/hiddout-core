@@ -35,7 +35,7 @@ class HiddoutCore {
 
 		this._fastify = fastify();
 
-		this._fastify.register(fastifyCORS,{origin:['http://localhost:8080']});
+		this._fastify.register(fastifyCORS,{origin:['http://localhost:8080','http://127.0.0.1:1234']});
 
 		this._fastify
 			.register(fastifyJWT, {
