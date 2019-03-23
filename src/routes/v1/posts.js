@@ -1,7 +1,7 @@
 //@flow
 
 import { SUCCESS } from '../../static/serverMessage';
-import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
+import { dbCollectionCount, dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
@@ -22,7 +22,10 @@ async function addPostHandler(req: Object, reply: Object): Object {
 		if (req.body.postId == null) {
 			const timeNow = new Date().getTime();
 
+			const postId = await dbCollectionCount('posts');
+
 			const result = await dbCollectionInsertOne('posts',{
+				postId: postId,
 				title: req.body.title,
 				content: req.body.content,
 				board: req.body.board,
@@ -32,7 +35,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			});
 
 			reply.type('application/json').code(200);
-			return { 'insertedId': result.insertedId, 'msg': SUCCESS };
+			return { 'insertedId': result[0].postId, 'msg': SUCCESS };
 		}
 	} catch (err) {
 		console.log(err.stack);
@@ -90,7 +93,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				'200': {
 					type: 'object',
 					properties: {
-						insertedId: { type: 'string' },
+						insertedId: { type: 'number' },
 						msg: { type: 'string' },
 					},
 				},
