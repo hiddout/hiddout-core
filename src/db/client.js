@@ -23,7 +23,7 @@ export async function dbCollectionUpdateOne(collection: string, ...queryObject:a
 	return await db.collection(collection).updateOne(...queryObject);
 }
 
-export async function dbCollectionInsertOne(collection: string, queryObject: Object): Promise<Array<any>> {
+export async function dbCollectionInsertOne(collection: string, queryObject: Object): Promise<any> {
 	const db = await getDB();
 	return await db.collection(collection).insertOne(queryObject);
 }
