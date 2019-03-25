@@ -12,7 +12,7 @@
     "fastify-static": "1.1.0",
     "fastify-swagger": "1.2.0",
     "fs-extra": "7.0.1",
-    "hiddout-viewer": "0.1.4",
+    "hiddout-viewer": "0.1.6",
     "mongodb": "3.1.13"
   },
   "devDependencies": {
