@@ -9,9 +9,9 @@ async function getBoardsHandler(req: Object, reply: Object): Object {
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ boards: result, msg: SUCCESS });
 	} catch (err) {
-		console.log(err);
-		reply.type('application/json').code(200);
-		return { boards: null, msg: err.name };
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: err };
 	}
 }
 

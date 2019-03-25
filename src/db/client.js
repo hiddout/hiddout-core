@@ -3,6 +3,11 @@ import MongoClient from 'mongodb';
 
 import { dbUrl, dbName } from '../config';
 
+export async function dbCollectionCount(collection: string):Promise<number> {
+	const db = await getDB();
+	return await db.collection(collection).countDocuments();
+}
+
 export async function dbCollectionFind(collection: string, queryObject: Object): any {
 	const db = await getDB();
 	return await db.collection(collection).find(queryObject).toArray();
@@ -18,7 +23,7 @@ export async function dbCollectionUpdateOne(collection: string, ...queryObject:a
 	return await db.collection(collection).updateOne(...queryObject);
 }
 
-export async function dbCollectionInsertOne(collection: string, queryObject: Object): any {
+export async function dbCollectionInsertOne(collection: string, queryObject: Object): Promise<any> {
 	const db = await getDB();
 	return await db.collection(collection).insertOne(queryObject);
 }

@@ -4,6 +4,10 @@ declare module 'fastify' {
 	declare export default any;
 }
 
+declare module 'fastify-cors' {
+	declare export default any;
+}
+
 declare module 'mongodb' {
 	declare export default any;
 }
