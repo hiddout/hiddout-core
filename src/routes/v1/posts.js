@@ -7,7 +7,7 @@ async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
 		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
-		const result = dbCollectionFind('posts',queryObject);
+		const result = await dbCollectionFind('posts', queryObject);
 		reply.type('application/json').code(200);
 		return { 'posts': result, 'msg': SUCCESS };
 	} catch (err) {
