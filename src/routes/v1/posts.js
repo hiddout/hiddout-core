@@ -2,14 +2,15 @@
 
 import { SUCCESS } from '../../static/serverMessage';
 import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
+import { HiddoutViewer } from 'hiddout-viewer';
 
 async function getPostHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
 		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
-		const result = dbCollectionFind('posts',queryObject);
+		const result = await dbCollectionFind('posts', queryObject);
 		reply.type('application/json').code(200);
-		return { 'posts': result, 'msg': SUCCESS };
+		return HiddoutViewer.response({ 'posts': result, 'msg': SUCCESS });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -53,22 +54,7 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 				'200': {
 					type: 'object',
 					properties: {
-						msg: { type: 'string' },
-						posts: {
-							type: 'array',
-							items: {
-								type: 'object',
-								properties: {
-									_id: { type: 'string' },
-									title: { type: 'string' },
-									content: { type: 'string' },
-									board: { type: 'string' },
-									userId: { type: 'string' },
-									createTime: { type: 'string' },
-									lastUpdateTime: { type: 'string' },
-								},
-							},
-						},
+						encryptedData: { type: 'string' },
 					},
 				},
 			},
