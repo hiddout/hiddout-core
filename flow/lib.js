@@ -10,6 +10,7 @@ declare module 'fastify-cors' {
 
 declare module 'mongodb' {
 	declare export default any;
+	declare export var ObjectId: any;
 }
 
 declare module 'hiddout-viewer' {

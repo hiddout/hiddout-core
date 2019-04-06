@@ -1,7 +1,11 @@
 //@flow
-import MongoClient from 'mongodb';
+import MongoClient,{ObjectId} from 'mongodb';
 
 import { dbUrl, dbName } from '../config';
+
+export function toDBId(Id: string){
+	return ObjectId(Id);
+}
 
 export async function dbCollectionCount(collection: string):Promise<number> {
 	const db = await getDB();
