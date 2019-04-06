@@ -128,7 +128,12 @@ class HiddoutCore {
 
 		this._fastify.register(fastifyStatic, {
 			root: path.join(__dirname, '../public'),
-			prefix: '/public/', // optional: default '/'
+			prefix: '/public/', // optional: default '/',
+			setHeaders: (res, path, stat) => {
+				if(/.js$/.test(path)){
+					res.setHeader('Service-Worker-Allowed','/');
+				}
+			},
 		});
 
 		this._fastify.get('*', async (request, reply) => {
