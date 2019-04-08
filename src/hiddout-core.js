@@ -121,9 +121,9 @@ class HiddoutCore {
 		this._fastify
 			.register(fastifySwagger, swaggerOptions)
 			.register(fastifyRateLimit, {
-				max: 3,
+				max: 6,
 				timeWindow: 5000,
-				whitelist: ['127.0.0.1'],
+				whitelist: ['localhost','127.0.0.1'],
 			});
 
 		this._fastify.register(fastifyStatic, {

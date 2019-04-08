@@ -47,6 +47,10 @@ async function addPostHandler(req: Object, reply: Object): Object {
 				content: req.body.content,
 				board: req.body.board,
 				userId: req.body.userId,
+				score: 0,
+				up: 0,
+				down: 0,
+				lol: 0,
 				createTime: timeNow,
 				lastUpdateTime: timeNow,
 			});
