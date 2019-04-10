@@ -13,7 +13,7 @@ import fastifyStatic from 'fastify-static';
 
 import { boards, comments, posts, signup } from './routes/v1';
 
-import { swaggerOptions } from './config';
+import { CORSOrigin, CORSWhitelist, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
 
 type HiddoutCorePropsType = {
@@ -35,7 +35,7 @@ class HiddoutCore {
 
 		this._fastify = fastify();
 
-		this._fastify.register(fastifyCORS,{origin:['http://localhost:8080','http://localhost:1234']});
+		this._fastify.register(fastifyCORS,{origin: CORSOrigin});
 
 		this._fastify
 			.register(fastifyJWT, {
@@ -123,7 +123,7 @@ class HiddoutCore {
 			.register(fastifyRateLimit, {
 				max: 6,
 				timeWindow: 5000,
-				whitelist: ['localhost','127.0.0.1'],
+				whitelist: CORSWhitelist,
 			});
 
 		this._fastify.register(fastifyStatic, {

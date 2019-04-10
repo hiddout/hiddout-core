@@ -1,4 +1,6 @@
 {
+	"CORSOrigin": ["http://localhost:8080", "http://localhost:1234"],
+	"CORSWhitelist": ["localhost", "127.0.0.1"],
 	"port": 1234,
 	"dbUrl":"mongodb://localhost:27017/",
 	"dbName": "test",
