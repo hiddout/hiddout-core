@@ -1,5 +1,6 @@
 //@flow
 import * as path from 'path';
+import * as fs from 'fs';
 
 import * as sjcl from 'sjcl';
 
@@ -137,7 +138,9 @@ class HiddoutCore {
 		});
 
 		this._fastify.get('*', async (request, reply) => {
-			reply.sendFile('index.html');
+			let dir = fs.readdirSync( path.join(__dirname, '../public') );
+			const htmlFiles = dir.filter( elm => elm.match(/.html/));
+			reply.sendFile(htmlFiles[0]);
 		});
 
 		this._fastify
