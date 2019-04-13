@@ -4,7 +4,8 @@
       "@babel/preset-env",
       {
         "useBuiltIns": "usage",
-        "targets": { "node": true }
+        "targets": { "node": true },
+        "corejs": "3"
       }
     ],
     "@babel/preset-flow"

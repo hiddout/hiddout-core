@@ -72,7 +72,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		beforeHandler: fastify.auth([
+		preHandler: fastify.auth([
 			fastify.verifyJWT,
 		]),
 		handler: getCommentsHandler,
@@ -96,7 +96,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		beforeHandler: fastify.auth([
+		preHandler: fastify.auth([
 			fastify.verifyJWT,
 			fastify.verifyPWH,
 		]),

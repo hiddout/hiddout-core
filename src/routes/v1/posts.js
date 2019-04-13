@@ -32,7 +32,7 @@ async function getPostHandler(req: Object, reply: Object): Object{
 		return HiddoutViewer.response({ 'post': result[0], 'msg': SUCCESS });
 	} catch (err) {
 		console.log(err.stack);
-		reply.type('application/json').code(500);
+		reply.type('application/json').code(404);
 		return { 'msg': err };
 	}
 }
