@@ -3,7 +3,7 @@
 import * as sjcl from 'sjcl';
 
 import { SERVER_ERROR, SUCCESS, USERNAME_OR_PASSWORD_IS_WRONG } from '../../static/serverMessage';
-import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
+import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function userLoginHandler(req: Object, reply: Object): Object {
@@ -25,6 +25,14 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		if(userKey === userInfo[0].userKey){
 			const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
+			const updatedUser = {...userInfo, ipList: userInfo.ipList.push(req.ip)};
+
+			await dbCollectionUpdateOne('users',{
+				user: { $eq: req.body.user },
+			},{
+				$set: updatedUser,
+			});
+
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
@@ -81,6 +89,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			user: req.body.user,
 			userKey: userKey,
 			salt: salt,
+			ipList:[].push(req.ip),
 			joinTime: timeNow,
 		});
 

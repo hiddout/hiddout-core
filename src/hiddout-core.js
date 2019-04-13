@@ -56,7 +56,7 @@ class HiddoutCore {
 				await request.jwtVerify(onVerify);
 
 				async function onVerify(err, decoded) {
-					if (err || !decoded.user || !decoded.pwh) {
+					if (err || !decoded.user || !decoded.ip) {
 						return done(new Error('Token not valid'));
 					}
 
@@ -69,18 +69,16 @@ class HiddoutCore {
 							return done(new Error('Token not valid'));
 						}
 
-						const saltBits = sjcl.codec.hex.toBits(
-							userInfo[0].salt,
-						);
-						const derivedKey = sjcl.misc.pbkdf2(
-							decoded.pwh,
-							saltBits,
-							1000,
-							256,
-						);
-						const userKey = sjcl.codec.hex.fromBits(derivedKey);
+						let ipIsThere = false;
 
-						if (userKey !== userInfo[0].userKey) {
+						for(const ip of userInfo[0].ipList) {
+							if(ip === decoded.ip){
+								ipIsThere = true;
+								break;
+							}
+						}
+
+						if (!ipIsThere) {
 							return done(new Error('Token not valid'));
 						}
 
