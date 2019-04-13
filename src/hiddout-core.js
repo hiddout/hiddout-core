@@ -1,5 +1,6 @@
 //@flow
 import * as path from 'path';
+import * as fs from 'fs';
 
 import * as sjcl from 'sjcl';
 
@@ -13,7 +14,7 @@ import fastifyStatic from 'fastify-static';
 
 import { boards, comments, posts, signup } from './routes/v1';
 
-import { swaggerOptions } from './config';
+import { CORSOrigin, CORSWhitelist, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
 
 type HiddoutCorePropsType = {
@@ -35,7 +36,7 @@ class HiddoutCore {
 
 		this._fastify = fastify();
 
-		this._fastify.register(fastifyCORS,{origin:['http://localhost:8080','http://localhost:1234']});
+		this._fastify.register(fastifyCORS,{origin: CORSOrigin});
 
 		this._fastify
 			.register(fastifyJWT, {
@@ -121,18 +122,25 @@ class HiddoutCore {
 		this._fastify
 			.register(fastifySwagger, swaggerOptions)
 			.register(fastifyRateLimit, {
-				max: 3,
+				max: 6,
 				timeWindow: 5000,
-				whitelist: ['127.0.0.1'],
+				whitelist: CORSWhitelist,
 			});
 
 		this._fastify.register(fastifyStatic, {
 			root: path.join(__dirname, '../public'),
-			prefix: '/public/', // optional: default '/'
+			prefix: '/public/', // optional: default '/',
+			setHeaders: (res, path, stat) => {
+				if(/.js$/.test(path)){
+					res.setHeader('Service-Worker-Allowed','/');
+				}
+			},
 		});
 
 		this._fastify.get('*', async (request, reply) => {
-			reply.sendFile('index.html');
+			let dir = fs.readdirSync( path.join(__dirname, '../public') );
+			const htmlFiles = dir.filter( elm => elm.match(/.html/));
+			reply.sendFile(htmlFiles[0]);
 		});
 
 		this._fastify

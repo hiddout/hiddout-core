@@ -24,7 +24,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 		reply.type('application/json').code(200);
 
 		if(userKey === userInfo[0].userKey){
-			const token = await this.jwt.sign(req.body);
+			const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
@@ -84,7 +84,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign(req.body);
+		const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ isUsed: false, token: token, msg: SUCCESS });
