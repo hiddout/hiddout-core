@@ -61,18 +61,20 @@ class HiddoutCore {
 					}
 
 					try {
-						const userInfo = await dbCollectionFind('users', {
+						const userInfos = await dbCollectionFind('users', {
 							user: { $eq: decoded.user },
 						});
 
-						if (!userInfo.length) {
+						if (!userInfos.length) {
 							return done(new Error('Token not valid'));
 						}
 
+						const userInfo = userInfos[0];
+
 						let ipIsThere = false;
 
-						for(const ip of userInfo[0].ipList) {
-							if(ip === decoded.ip){
+						for(const info of userInfo.loginInfo) {
+							if(info.ip === decoded.ip){
 								ipIsThere = true;
 								break;
 							}
