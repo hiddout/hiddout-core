@@ -1,6 +1,6 @@
 //@flow
 
-import { SUCCESS, CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
+import { CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
 import { dbCollectionFind, dbCollectionInsertOne, toDBId } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
@@ -10,7 +10,7 @@ async function getPostsHandler(req: Object, reply: Object): Object {
 		const queryObject: Object = board ? { 'board': { $eq: board } } : {};
 		const result = await dbCollectionFind('posts', queryObject);
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ 'posts': result, 'msg': SUCCESS });
+		return HiddoutViewer.response({ 'posts': result });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -29,7 +29,7 @@ async function getPostHandler(req: Object, reply: Object): Object {
 		}
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ 'post': result[0], 'msg': SUCCESS });
+		return HiddoutViewer.response({ 'post': result[0] });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(404);
@@ -123,6 +123,9 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
+		preHandler: fastify.auth([
+			fastify.verifyJWT,
+		]),
 		handler: addPostHandler,
 	});
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <link rel="icon"
+          type="image/png"
+          href="/public/static/Hiddout.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sjcl@1.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/immer@2.1.1/dist/immer.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/node-forge@0.8.1/dist/forge.min.js"></script>
+    <title>Hiddout</title>
+</head>
+<body>
+<div id="root"></div>
+<script>
+	if ('serviceWorker' in navigator) {
+		window.addEventListener('load', function() {
+			navigator.serviceWorker.register('/public/js/service-worker.js', { scope: '/' });
+		});
+	}
+</script>
+<script type="text/javascript" src="/public/js/hiddout.cd68b7cf69e0724f06dd.js"></script></body>
+</html>
