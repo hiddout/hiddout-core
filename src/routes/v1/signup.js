@@ -3,30 +3,52 @@
 import * as sjcl from 'sjcl';
 
 import { SERVER_ERROR, SUCCESS, USERNAME_OR_PASSWORD_IS_WRONG } from '../../static/serverMessage';
-import { dbCollectionFind, dbCollectionInsertOne } from '../../db/client';
+import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function userLoginHandler(req: Object, reply: Object): Object {
 	try{
-		const userInfo = await dbCollectionFind('users', {
+		const userInfos = await dbCollectionFind('users', {
 			user: { $eq: req.body.user },
 		});
 
-		if (!userInfo.length) {
-			reply.type('application/json').code(200);
+		if (!userInfos.length) {
+			reply.type('application/json').code(401);
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 
-		const saltBits = sjcl.codec.hex.toBits(userInfo[0].salt);
+		const userInfo = userInfos[0];
+
+		const saltBits = sjcl.codec.hex.toBits(userInfo.salt);
 		const derivedKey = sjcl.misc.pbkdf2(req.body.pwh, saltBits, 1000, 256);
 		const userKey = sjcl.codec.hex.fromBits(derivedKey);
 
 		reply.type('application/json').code(200);
 
-		if(userKey === userInfo[0].userKey){
+		if(userKey === userInfo.userKey){
 			const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
+
+			let isNewIp = true;
+
+			for(const info of userInfo.loginInfo){
+				if(info.ip === req.ip){
+					isNewIp = false;
+					break;
+				}
+			}
+
+			if(isNewIp){
+				userInfo.loginInfo.push({ip:req.ip});
+				await dbCollectionUpdateOne('users',{
+					user: { $eq: req.body.user },
+				},{
+					$set: userInfo,
+				});
+			}
+
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
+			reply.type('application/json').code(401);
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 	}catch (err) {
@@ -81,6 +103,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			user: req.body.user,
 			userKey: userKey,
 			salt: salt,
+			loginInfo:([{ip:req.ip}]),
 			joinTime: timeNow,
 		});
 

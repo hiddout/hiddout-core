@@ -1,16 +1,16 @@
 //@flow
 
-import { SUCCESS,CONTENT_IS_NOT_HERE } from '../../static/serverMessage';
+import { CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
 import { dbCollectionFind, dbCollectionInsertOne, toDBId } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
-		const queryObject: Object = board ? { 'board': { $eq: board  }} : {};
+		const queryObject: Object = board ? { 'board': { $eq: board } } : {};
 		const result = await dbCollectionFind('posts', queryObject);
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ 'posts': result, 'msg': SUCCESS });
+		return HiddoutViewer.response({ 'posts': result });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -18,54 +18,53 @@ async function getPostsHandler(req: Object, reply: Object): Object {
 	}
 }
 
-async function getPostHandler(req: Object, reply: Object): Object{
+async function getPostHandler(req: Object, reply: Object): Object {
 	try {
-		const queryObject: Object = { _id: toDBId(HiddoutViewer.getId(req.params.postId))  };
+		const queryObject: Object = { _id: toDBId(HiddoutViewer.getId(req.params.postId)) };
 		const result = await dbCollectionFind('posts', queryObject);
 
-		if(!result.length){
+		if (!result.length) {
 			reply.type('application/json').code(404);
 			return HiddoutViewer.response({ 'post': null, 'msg': CONTENT_IS_NOT_HERE });
 		}
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ 'post': result[0], 'msg': SUCCESS });
+		return HiddoutViewer.response({ 'post': result[0] });
 	} catch (err) {
 		console.log(err.stack);
-		reply.type('application/json').code(500);
+		reply.type('application/json').code(404);
 		return { 'msg': err };
 	}
 }
 
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
-		if (req.body.postId == null) {
-			const timeNow = new Date().getTime();
 
-			const result = await dbCollectionInsertOne('posts',{
-				title: req.body.title,
-				content: req.body.content,
-				board: req.body.board,
-				userId: req.body.userId,
-				score: 0,
-				up: 0,
-				down: 0,
-				lol: 0,
-				createTime: timeNow,
-				lastUpdateTime: timeNow,
-			});
+		const timeNow = new Date().getTime();
 
-			reply.type('application/json').code(200);
-			return { 'insertedId': result.insertedId, 'msg': SUCCESS };
-		}
+		const result = await dbCollectionInsertOne('posts', {
+			title: req.body.title,
+			content: req.body.content,
+			board: req.body.board,
+			userId: req.body.userId,
+			score: 0,
+			up: 0,
+			down: 0,
+			lol: 0,
+			createTime: timeNow,
+			lastUpdateTime: timeNow,
+		});
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ 'insertedId': result.insertedId });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
-		return { msg: err };
+		return { msg: SERVER_ERROR };
 	}
 }
 
-function posts(fastify: fastify, opts: Object, next: ()=> any):void{
+function posts(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'GET',
 		url: '/post/:postId',
@@ -105,26 +104,32 @@ function posts(fastify: fastify, opts: Object, next: ()=> any):void{
 		method: 'POST',
 		url: '/posts',
 		schema: {
-			querystring: {
-				title: { type: 'string' },
-				content: { type: 'string' },
-				board: { type: 'string' },
-				userId: { type: 'string' },
+			body: {
+				type: 'object',
+				properties: {
+					title: { type: 'string' },
+					content: { type: 'string' },
+					board: { type: 'string' },
+					userId: { type: 'string' },
+				},
+				required: ['title', 'content', 'board','userId'],
 			},
 			response: {
 				'200': {
 					type: 'object',
 					properties: {
-						insertedId: { type: 'string' },
-						msg: { type: 'string' },
+						encryptedData: { type: 'string' },
 					},
 				},
 			},
 		},
+		preHandler: fastify.auth([
+			fastify.verifyJWT,
+		]),
 		handler: addPostHandler,
 	});
 
 	next();
 }
 
-export {posts};
+export { posts };

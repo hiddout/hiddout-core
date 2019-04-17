@@ -56,31 +56,31 @@ class HiddoutCore {
 				await request.jwtVerify(onVerify);
 
 				async function onVerify(err, decoded) {
-					if (err || !decoded.user || !decoded.pwh) {
+					if (err || !decoded.user || !decoded.ip) {
 						return done(new Error('Token not valid'));
 					}
 
 					try {
-						const userInfo = await dbCollectionFind('users', {
+						const userInfos = await dbCollectionFind('users', {
 							user: { $eq: decoded.user },
 						});
 
-						if (!userInfo.length) {
+						if (!userInfos.length) {
 							return done(new Error('Token not valid'));
 						}
 
-						const saltBits = sjcl.codec.hex.toBits(
-							userInfo[0].salt,
-						);
-						const derivedKey = sjcl.misc.pbkdf2(
-							decoded.pwh,
-							saltBits,
-							1000,
-							256,
-						);
-						const userKey = sjcl.codec.hex.fromBits(derivedKey);
+						const userInfo = userInfos[0];
 
-						if (userKey !== userInfo[0].userKey) {
+						let ipIsThere = false;
+
+						for(const info of userInfo.loginInfo) {
+							if(info.ip === decoded.ip){
+								ipIsThere = true;
+								break;
+							}
+						}
+
+						if (!ipIsThere) {
 							return done(new Error('Token not valid'));
 						}
 
