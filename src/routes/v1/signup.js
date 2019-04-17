@@ -13,7 +13,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 		});
 
 		if (!userInfos.length) {
-			reply.type('application/json').code(200);
+			reply.type('application/json').code(401);
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 
@@ -48,6 +48,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
+			reply.type('application/json').code(401);
 			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
 		}
 	}catch (err) {
