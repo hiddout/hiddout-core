@@ -88,9 +88,9 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		preHandler: fastify.auth([
-			fastify.verifyJWT,
-		]),
+		onRequest: (request, reply, next) => {
+			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		},
 		handler: addCommentHandler,
 	});
 

@@ -14,7 +14,7 @@ import fastifyStatic from 'fastify-static';
 
 import { boards, comments, posts, signup } from './routes/v1';
 
-import { CORSOrigin, CORSWhitelist, swaggerOptions } from './config';
+import { CORSOrigin, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
 
 type HiddoutCorePropsType = {
@@ -124,7 +124,6 @@ class HiddoutCore {
 			.register(fastifyRateLimit, {
 				max: 6,
 				timeWindow: 5000,
-				whitelist: CORSWhitelist,
 			});
 
 		this._fastify.register(fastifyStatic, {
