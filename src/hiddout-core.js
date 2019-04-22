@@ -122,7 +122,7 @@ class HiddoutCore {
 		this._fastify
 			.register(fastifySwagger, swaggerOptions)
 			.register(fastifyRateLimit, {
-				max: 6,
+				max: 20,
 				timeWindow: 5000,
 			});
 

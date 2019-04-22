@@ -8,7 +8,7 @@
 		"exposeRoute": true,
 		"swagger": {
 			"info": {
-				"title": "Fastify API",
+				"title": "Hiddout API",
 				"description": "hiddout-core",
 				"version": "1.0.0"
 			},

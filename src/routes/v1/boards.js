@@ -33,6 +33,7 @@ function boards(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						msg:{ type: 'string' },
 					},
 				},
 			},
