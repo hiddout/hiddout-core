@@ -1,7 +1,7 @@
 //@flow
 
 import { CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
-import { dbCollectionFind, dbCollectionInsertOne, toDBId } from '../../db/client';
+import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne, toDBId } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function getPostsHandler(req: Object, reply: Object): Object {
@@ -34,6 +34,31 @@ async function getPostHandler(req: Object, reply: Object): Object {
 		console.log(err.stack);
 		reply.type('application/json').code(404);
 		return { 'msg': err };
+	}
+}
+
+async function reactPostHandler(req: Object, reply: Object): Object {
+	try{
+
+		const update = await dbCollectionUpdateOne(
+			'reactions',
+			{ postId: toDBId(HiddoutViewer.getId(req.params.postId)) },
+			{
+				$push: {
+					reactions: {
+						userId: req.body.userId,
+						reaction: req.body.reaction,
+					},
+				},
+			},
+			{ upsert: true },
+		);
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ reacted: update.result.ok });
+	}catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
 	}
 }
 
@@ -133,6 +158,34 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 
 	fastify.route({
 		method: 'POST',
+		url: '/post/:postId/react',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					userId: { type: 'string'},
+					reaction: { type: 'string'},
+				},
+				required: ['reaction'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						reacted: {type: 'boolean'},
+					},
+				},
+			},
+		},
+		onRequest: (request, reply, next) => {
+			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		},
+		handler: reactPostHandler,
+	});
+
+	fastify.route({
+		method: 'POST',
 		url: '/posts',
 		schema: {
 			body: {
@@ -150,6 +203,7 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						insertedId: {type: 'string'},
 					},
 				},
 			},

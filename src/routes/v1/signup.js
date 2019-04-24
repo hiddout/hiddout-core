@@ -37,6 +37,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 				}
 			}
 
+			//TODO use upsert true
 			if(isNewIp){
 				userInfo.loginInfo.push({ip:req.ip});
 				await dbCollectionUpdateOne('users',{
