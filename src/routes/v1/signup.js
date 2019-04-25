@@ -2,19 +2,30 @@
 
 import * as sjcl from 'sjcl';
 
-import { SERVER_ERROR, SUCCESS, USERNAME_OR_PASSWORD_IS_WRONG } from '../../static/serverMessage';
-import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne } from '../../db/client';
+import {
+	SERVER_ERROR,
+	SUCCESS,
+	USERNAME_OR_PASSWORD_IS_WRONG,
+} from '../../static/serverMessage';
+import {
+	dbCollectionFind,
+	dbCollectionInsertOne,
+	dbCollectionUpdateOne,
+} from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function userLoginHandler(req: Object, reply: Object): Object {
-	try{
+	try {
 		const userInfos = await dbCollectionFind('users', {
 			user: { $eq: req.body.user },
 		});
 
 		if (!userInfos.length) {
 			reply.type('application/json').code(401);
-			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
+			return HiddoutViewer.response({
+				token: null,
+				msg: USERNAME_OR_PASSWORD_IS_WRONG,
+			});
 		}
 
 		const userInfo = userInfos[0];
@@ -25,19 +36,21 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		reply.type('application/json').code(200);
 
-		if(userKey === userInfo.userKey){
-			const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
+		if (userKey === userInfo.userKey) {
+			const token = await this.jwt.sign({
+				user: req.body.user,
+				ip: req.ip,
+			});
 
 			let isNewIp = true;
 
-			for(const info of userInfo.loginInfo){
-				if(info.ip === req.ip){
+			for (const info of userInfo.loginInfo) {
+				if (info.ip === req.ip) {
 					isNewIp = false;
 					break;
 				}
 			}
 
-			//TODO use upsert true
 			if(isNewIp){
 				userInfo.loginInfo.push({ip:req.ip});
 				await dbCollectionUpdateOne('users',{
@@ -50,9 +63,13 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
 			reply.type('application/json').code(401);
-			return HiddoutViewer.response({ token: null, msg: USERNAME_OR_PASSWORD_IS_WRONG });
+
+			return HiddoutViewer.response({
+				token: null,
+				msg: USERNAME_OR_PASSWORD_IS_WRONG,
+			});
 		}
-	}catch (err) {
+	} catch (err) {
 		console.error(err);
 		reply.type('application/json').code(500);
 		return { msg: SERVER_ERROR };
@@ -90,7 +107,11 @@ async function signUpHandler(req: Object, reply: Object): Object {
 
 		if (userInfo.length) {
 			reply.type('application/json').code(200);
-			return HiddoutViewer.response({ isUsed: true, token:null, msg: SUCCESS });
+			return HiddoutViewer.response({
+				isUsed: true,
+				token: null,
+				msg: SUCCESS,
+			});
 		}
 
 		const saltBits = sjcl.random.randomWords(16);
@@ -104,14 +125,18 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			user: req.body.user,
 			userKey: userKey,
 			salt: salt,
-			loginInfo:([{ip:req.ip}]),
+			loginInfo: [{ ip: req.ip }],
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign({user: req.body.user, ip: req.ip});
+		const token = await this.jwt.sign({ user: req.body.user, ip: req.ip });
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ isUsed: false, token: token, msg: SUCCESS });
+		return HiddoutViewer.response({
+			isUsed: false,
+			token: token,
+			msg: SUCCESS,
+		});
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
