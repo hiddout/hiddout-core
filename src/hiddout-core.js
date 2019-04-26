@@ -12,9 +12,9 @@ import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import { boards, comments, posts, signup } from './routes/v1';
+import { boards, comments, posts, signup, reactions } from './routes/v1';
 
-import { CORSOrigin, CORSWhitelist, swaggerOptions } from './config';
+import { CORSOrigin, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
 
 type HiddoutCorePropsType = {
@@ -119,12 +119,14 @@ class HiddoutCore {
 				}
 			});
 
+		if(process.env.NODE_ENV === 'DEV'){
+			this._fastify.register(fastifySwagger, swaggerOptions);
+		}
+
 		this._fastify
-			.register(fastifySwagger, swaggerOptions)
 			.register(fastifyRateLimit, {
-				max: 6,
+				max: 20,
 				timeWindow: 5000,
-				whitelist: CORSWhitelist,
 			});
 
 		this._fastify.register(fastifyStatic, {
@@ -147,13 +149,18 @@ class HiddoutCore {
 			.register(boards, { prefix: '/api/v1' })
 			.register(comments, { prefix: '/api/v1' })
 			.register(posts, { prefix: '/api/v1' })
+			.register(reactions, {prefix: '/api/v1'})
 			.register(signup, { prefix: '/api/v1' });
 
 		this._fastify.listen(this._port, (err, address) => {
 			if (err) {
 				throw err;
 			}
-			this._fastify.swagger();
+
+			if(process.env.NODE_ENV === 'DEV'){
+				this._fastify.swagger();
+			}
+
 			console.log(`server listening on ${address}`);
 		});
 	}

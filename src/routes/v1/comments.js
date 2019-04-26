@@ -20,7 +20,7 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
 			const timeNow = new Date().getTime();
-			const result = await dbCollectionUpdateOne(
+			const update = await dbCollectionUpdateOne(
 				'comments',
 				{ postId: toDBId(HiddoutViewer.getId(req.params.postId)) },
 				{
@@ -41,7 +41,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 				{ upsert: true },
 			);
 			reply.type('application/json').code(200);
-			return HiddoutViewer.response({ replied: result.result.ok });
+			return HiddoutViewer.response({ replied: update.result.ok });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -84,13 +84,14 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						replied:{type: 'boolean'},
 					},
 				},
 			},
 		},
-		preHandler: fastify.auth([
-			fastify.verifyJWT,
-		]),
+		onRequest: (request, reply, next) => {
+			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		},
 		handler: addCommentHandler,
 	});
 
