@@ -2,6 +2,30 @@ import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne, toDBId 
 import { HiddoutViewer } from 'hiddout-viewer';
 import { SERVER_ERROR } from '../../static/serverMessage';
 
+async function getPostReactionsHandler(req: Object, reply: Object): Object {
+	try {
+
+		const id = toDBId(HiddoutViewer.getId(req.params.postId));
+
+		const result = await dbCollectionFind('reactions', {
+			postId: { $eq: id },
+		});
+
+		let postReactions = null;
+
+		if (result.length) {
+			postReactions = result[0].reactions;
+		}
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ reactions: postReactions });
+	} catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
+
 async function reactPostHandler(req: Object, reply: Object): Object {
 	try {
 
@@ -53,6 +77,31 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 }
 
 function reactions(fastify: fastify, opts: Object, next: () => any): void {
+
+	fastify.route({
+		method: 'GET',
+		url: '/post/:postId/react',
+		schema: {
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						reactions: { type: 'array', items:{
+								type: 'object',
+								properties: {
+									userId: { type: 'string' },
+									reaction: { type: 'string' },
+								},
+							} },
+					},
+				},
+			},
+		},
+		handler: getPostReactionsHandler,
+	});
+
+
 	fastify.route({
 		method: 'POST',
 		url: '/post/:postId/react',
