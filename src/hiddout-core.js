@@ -14,21 +14,17 @@ import fastifyStatic from 'fastify-static';
 
 import { boards, comments, posts, signup, reactions } from './routes/v1';
 
-import { CORSOrigin, swaggerOptions } from './config';
+import { CORSOrigin, port, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
-
-type HiddoutCorePropsType = {
-	port?: number,
-};
 
 class HiddoutCore {
 	_isStart: boolean;
 	_port: number;
 	_fastify: fastify;
 
-	constructor(props: HiddoutCorePropsType) {
+	constructor() {
 		this._isStart = false;
-		this._port = props.port || 3000;
+		this._port = port;
 	}
 
 	start(): void {
