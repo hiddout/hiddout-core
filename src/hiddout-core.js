@@ -14,7 +14,7 @@ import fastifyStatic from 'fastify-static';
 
 import { boards, comments, posts, signup, reactions } from './routes/v1';
 
-import { CORSOrigin, port, swaggerOptions } from './config';
+import { CORSOrigin, port, secret, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
 
 class HiddoutCore {
@@ -30,13 +30,13 @@ class HiddoutCore {
 	start(): void {
 		this._isStart = true;
 
-		this._fastify = fastify();
+		this._fastify = fastify({maxParamLength:150});
 
 		this._fastify.register(fastifyCORS,{origin: CORSOrigin});
 
 		this._fastify
 			.register(fastifyJWT, {
-				secret: 'supersecret',
+				secret: secret,
 				sign: {
 					expiresIn: '1h',
 				},

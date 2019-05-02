@@ -26,6 +26,7 @@
     "@babel/register": "7.4.4",
     "babel-eslint": "10.0.1",
     "core-js": "3.0.1",
+    "download": "^7.1.0",
     "eslint": "5.16.0",
     "expect.js": "0.3.1",
     "flow-bin": "0.98.0",
@@ -34,7 +35,7 @@
     "prettier": "1.17.0"
   },
   "scripts": {
-    "build": "babel ./src -d bin --copy-files",
+    "build": "babel ./src -d bin --copy-files && node ./devScript/downloadFE.js",
     "flow": "flow",
     "lint": "eslint ./src",
     "lint-fix": "eslint ./src --fix",
