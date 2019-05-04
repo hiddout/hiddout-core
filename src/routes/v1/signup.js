@@ -51,13 +51,17 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 				}
 			}
 
-			if(isNewIp){
-				userInfo.loginInfo.push({ip:req.ip});
-				await dbCollectionUpdateOne('users',{
-					user: { $eq: req.body.user },
-				},{
-					$set: userInfo,
-				});
+			if (isNewIp) {
+				userInfo.loginInfo.push({ ip: req.ip });
+				await dbCollectionUpdateOne(
+					'users',
+					{
+						user: { $eq: req.body.user },
+					},
+					{
+						$set: userInfo,
+					},
+				);
 			}
 
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });

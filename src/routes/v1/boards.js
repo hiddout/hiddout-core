@@ -1,18 +1,18 @@
 //@flow
 import { dbCollectionFind } from '../../db/client';
 import { SERVER_ERROR, SUCCESS } from '../../static/serverMessage';
-import {HiddoutViewer} from 'hiddout-viewer';
+import { HiddoutViewer } from 'hiddout-viewer';
 
 async function getBoardsHandler(req: Object, reply: Object): Object {
 	try {
 		const queryObject: Object = { name: { $eq: req.query.name } };
 		const result = await dbCollectionFind('boards', queryObject);
-		if(!result.length){
+		if (!result.length) {
 			reply.type('application/json').code(404);
-			return HiddoutViewer.response({ msg: SUCCESS  });
+			return HiddoutViewer.response({ msg: SUCCESS });
 		}
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ msg: SUCCESS  });
+		return HiddoutViewer.response({ msg: SUCCESS });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -33,7 +33,7 @@ function boards(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
-						msg:{ type: 'string' },
+						msg: { type: 'string' },
 					},
 				},
 			},

@@ -1,11 +1,23 @@
 //@flow
 
-import { dbCollectionFindOne, dbCollectionUpdateOne, toDBId } from '../../db/client';
+import {
+	dbCollectionFindOne,
+	dbCollectionUpdateOne,
+	toDBId,
+} from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
-		const queryObject: Object = { postId: { $eq: toDBId(HiddoutViewer.getId(req.params.postId)) } };
+		const realId = HiddoutViewer.getId(req.params.postId);
+		if (!realId) {
+			reply.type('application/json').code(1009);
+			return HiddoutViewer.response({ comments: {} });
+		}
+
+		const queryObject: Object = {
+			postId: { $eq: toDBId(realId) },
+		};
 		const result = await dbCollectionFindOne('comments', queryObject);
 		reply.type('application/json').code(200);
 		const comments = result ? result.comments : {};
@@ -19,29 +31,36 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 
 async function addCommentHandler(req: Object, reply: Object): Object {
 	try {
-			const timeNow = new Date().getTime();
-			const update = await dbCollectionUpdateOne(
-				'comments',
-				{ postId: toDBId(HiddoutViewer.getId(req.params.postId)) },
-				{
-					$push: {
-						comments: {
-							replyTo: req.body.replyTo,
-							content: req.body.content,
-							userId: req.body.userId,
-							score: 0,
-							up: 0,
-							down: 0,
-							lol: 0,
-							createTime: timeNow,
-							lastUpdateTime: timeNow,
-						},
+		const realId = HiddoutViewer.getId(req.params.postId);
+
+		if (!realId) {
+			reply.type('application/json').code(1009);
+			return HiddoutViewer.response({ replied: false });
+		}
+
+		const timeNow = new Date().getTime();
+		const update = await dbCollectionUpdateOne(
+			'comments',
+			{ postId: toDBId(realId) },
+			{
+				$push: {
+					comments: {
+						replyTo: req.body.replyTo,
+						content: req.body.content,
+						userId: req.body.userId,
+						score: 0,
+						up: 0,
+						down: 0,
+						lol: 0,
+						createTime: timeNow,
+						lastUpdateTime: timeNow,
 					},
 				},
-				{ upsert: true },
-			);
-			reply.type('application/json').code(200);
-			return HiddoutViewer.response({ replied: update.result.ok });
+			},
+			{ upsert: true },
+		);
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ replied: update.result.ok });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -59,6 +78,23 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						comments: {
+							type: 'array',
+							items: {
+								type: 'object',
+								properties: {
+									replyTo: { type: 'number' },
+									content: { type: 'string' },
+									userId: { type: 'string' },
+									score: { type: 'number' },
+									up: { type: 'number' },
+									down: { type: 'number' },
+									lol: { type: 'number' },
+									createTime: { type: 'number' },
+									lastUpdateTime: { type: 'number' },
+								},
+							},
+						},
 					},
 				},
 			},
@@ -75,7 +111,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				properties: {
 					content: { type: 'string' },
 					userId: { type: 'string' },
-					replyTo: {type: 'number'},
+					replyTo: { type: 'number' },
 				},
 				required: ['content', 'replyTo', 'userId'],
 			},
@@ -84,7 +120,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
-						replied:{type: 'boolean'},
+						replied: { type: 'boolean' },
 					},
 				},
 			},

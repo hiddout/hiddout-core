@@ -1,4 +1,9 @@
-import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne, toDBId } from '../../db/client';
+import {
+	dbCollectionFind,
+	dbCollectionInsertOne,
+	dbCollectionUpdateOne,
+	toDBId,
+} from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 import { SERVER_ERROR } from '../../static/serverMessage';
 
@@ -8,8 +13,12 @@ const REACT_LOL = 'lol';
 
 async function getPostReactionsHandler(req: Object, reply: Object): Object {
 	try {
-
-		const id = toDBId(HiddoutViewer.getId(req.params.postId));
+		const realId = HiddoutViewer.getId(req.params.postId);
+		if (!realId) {
+			reply.type('application/json').code(1009);
+			return HiddoutViewer.response({ reactions: [] });
+		}
+		const id = toDBId(realId);
 
 		const result = await dbCollectionFind('reactions', {
 			postId: { $eq: id },
@@ -32,27 +41,34 @@ async function getPostReactionsHandler(req: Object, reply: Object): Object {
 
 async function reactPostHandler(req: Object, reply: Object): Object {
 	try {
-
-		const id = toDBId(HiddoutViewer.getId(req.params.postId));
+		const realId = HiddoutViewer.getId(req.params.postId);
+		if (!realId) {
+			reply.type('application/json').code(1009);
+			return HiddoutViewer.response({ reacted: false });
+		}
+		const id = toDBId(realId);
 
 		const result = await dbCollectionFind('reactions', {
-			postId: {$eq: id},
+			postId: { $eq: id },
 		});
 
 		let postReaction = {
-			postId: id,
-			reactions:[{
-				userId: req.body.userId,
-				reaction: req.body.reaction,
-			}],
-		}, update = null;
+				postId: id,
+				reactions: [
+					{
+						userId: req.body.userId,
+						reaction: req.body.reaction,
+					},
+				],
+			},
+			update = null;
 
-		if(result.length) {
+		if (result.length) {
 			postReaction = result[0];
 			const reactions = postReaction.reactions;
-			for(let index = 0; index < reactions.length; ++index) {
+			for (let index = 0; index < reactions.length; ++index) {
 				const react = reactions[index];
-				if(react.userId === req.body.userId) {
+				if (react.userId === req.body.userId) {
 					postReaction.reactions[index].reaction = req.body.reaction;
 					break;
 				}
@@ -67,24 +83,28 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 			);
 		}
 
-		if(!update) {
+		if (!update) {
 			await dbCollectionInsertOne('reactions', postReaction);
 		}
 
 		const scoreResult = calculateScore(postReaction.reactions);
 
 		const posts = await dbCollectionFind('posts', {
-			_id: {$eq: id},
+			_id: { $eq: id },
 		});
 
-		update = await dbCollectionUpdateOne('posts',{
-			_id: id,
-		},{
-			$set:{
-				...posts[0],
-				...scoreResult,
+		update = await dbCollectionUpdateOne(
+			'posts',
+			{
+				_id: id,
 			},
-		});
+			{
+				$set: {
+					...posts[0],
+					...scoreResult,
+				},
+			},
+		);
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ reacted: update.result.ok });
@@ -96,9 +116,11 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 }
 
 function calculateScore(reactions: Array<Object>): Object {
-	let ups = 0, downs = 0, lols = 0;
+	let ups = 0,
+		downs = 0,
+		lols = 0;
 
-	for(const reactInfo of reactions) {
+	for (const reactInfo of reactions) {
 		switch (reactInfo.reaction) {
 			case REACT_UP:
 				ups++;
@@ -114,11 +136,15 @@ function calculateScore(reactions: Array<Object>): Object {
 		}
 	}
 
-	return { score: ups - (downs / 2) + (lols / 3), up: ups, down: downs, lol: lols };
+	return {
+		score: ups - downs / 2 + lols / 3,
+		up: ups,
+		down: downs,
+		lol: lols,
+	};
 }
 
 function reactions(fastify: fastify, opts: Object, next: () => any): void {
-
 	fastify.route({
 		method: 'GET',
 		url: '/post/:postId/reactions',
@@ -128,21 +154,22 @@ function reactions(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
-						reactions: { type: 'array',
-							items:{
+						reactions: {
+							type: 'array',
+							items: {
 								type: 'object',
 								properties: {
 									userId: { type: 'string' },
 									reaction: { type: 'string' },
 								},
-							} },
+							},
+						},
 					},
 				},
 			},
 		},
 		handler: getPostReactionsHandler,
 	});
-
 
 	fastify.route({
 		method: 'POST',
