@@ -110,7 +110,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				type: 'object',
 				properties: {
 					content: { type: 'string' },
-					userId: { type: 'string' },
+					replyTo: { type: 'number' },
 				},
 				required: ['content', 'replyTo'],
 			},
