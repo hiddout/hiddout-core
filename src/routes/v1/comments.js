@@ -47,7 +47,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 					comments: {
 						replyTo: req.body.replyTo,
 						content: req.body.content,
-						userId: req.body.userId,
+						userId: req.user.userId,
 						score: 0,
 						up: 0,
 						down: 0,
@@ -111,9 +111,8 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				properties: {
 					content: { type: 'string' },
 					userId: { type: 'string' },
-					replyTo: { type: 'number' },
 				},
-				required: ['content', 'replyTo', 'userId'],
+				required: ['content', 'replyTo'],
 			},
 			response: {
 				'200': {

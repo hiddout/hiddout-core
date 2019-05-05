@@ -50,13 +50,13 @@ class HiddoutCore {
 				await request.jwtVerify(onVerify);
 
 				async function onVerify(err, decoded) {
-					if (err || !decoded.user || !decoded.ip) {
+					if (err || !decoded.userId || !decoded.ip) {
 						return done(new Error('Token not valid'));
 					}
 
 					try {
 						const userInfos = await dbCollectionFind('users', {
-							user: { $eq: decoded.user },
+							user: { $eq: decoded.userId },
 						});
 
 						if (!userInfos.length) {
@@ -82,25 +82,6 @@ class HiddoutCore {
 					} catch (err) {
 						return done(new Error('Token not valid'));
 					}
-				}
-			})
-			.decorate('verifyOwner', async (request, reply, done) => {
-				if (!request.req.headers['authorization']) {
-					return done(new Error('Missing token header'));
-				}
-
-				await request.jwtVerify(onVerify);
-
-				async function onVerify(err, decoded) {
-					if (
-						err ||
-						!decoded.user ||
-						request.body.user !== decoded.user
-					) {
-						return done(new Error('Token not valid'));
-					}
-
-					done();
 				}
 			});
 

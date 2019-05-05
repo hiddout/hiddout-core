@@ -38,7 +38,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		if (userKey === userInfo.userKey) {
 			const token = await this.jwt.sign({
-				user: req.body.user,
+				userId: req.body.user,
 				ip: req.ip,
 			});
 
@@ -133,7 +133,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign({ user: req.body.user, ip: req.ip });
+		const token = await this.jwt.sign({ userId: req.body.user, ip: req.ip });
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({

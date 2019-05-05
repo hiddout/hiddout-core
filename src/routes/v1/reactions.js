@@ -56,7 +56,7 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 				postId: id,
 				reactions: [
 					{
-						userId: req.body.userId,
+						userId: req.user.userId,
 						reaction: req.body.reaction,
 					},
 				],
@@ -68,7 +68,7 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 			const reactions = postReaction.reactions;
 			for (let index = 0; index < reactions.length; ++index) {
 				const react = reactions[index];
-				if (react.userId === req.body.userId) {
+				if (react.userId === req.user.userId) {
 					postReaction.reactions[index].reaction = req.body.reaction;
 					break;
 				}
@@ -178,10 +178,9 @@ function reactions(fastify: fastify, opts: Object, next: () => any): void {
 			body: {
 				type: 'object',
 				properties: {
-					userId: { type: 'string' },
 					reaction: { type: 'string' },
 				},
-				required: ['userId', 'reaction'],
+				required: [ 'reaction'],
 			},
 			response: {
 				'200': {

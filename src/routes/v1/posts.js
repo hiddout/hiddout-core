@@ -56,6 +56,7 @@ async function getPostHandler(req: Object, reply: Object): Object {
 
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
+
 		const timeNow = new Date().getTime();
 
 		const result = await dbCollectionInsertOne('posts', {
@@ -159,9 +160,8 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 					title: { type: 'string' },
 					content: { type: 'string' },
 					board: { type: 'string' },
-					userId: { type: 'string' },
 				},
-				required: ['title', 'content', 'board', 'userId'],
+				required: ['title', 'content', 'board'],
 			},
 			response: {
 				'200': {
