@@ -11,7 +11,7 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
 		const realId = HiddoutViewer.getId(req.params.postId);
 		if (!realId) {
-			reply.type('application/json').code(1009);
+			reply.type('application/json').code(200);
 			return HiddoutViewer.response({ comments: {} });
 		}
 
@@ -34,7 +34,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 		const realId = HiddoutViewer.getId(req.params.postId);
 
 		if (!realId) {
-			reply.type('application/json').code(1009);
+			reply.type('application/json').code(200);
 			return HiddoutViewer.response({ replied: false });
 		}
 

@@ -15,7 +15,7 @@ async function getPostReactionsHandler(req: Object, reply: Object): Object {
 	try {
 		const realId = HiddoutViewer.getId(req.params.postId);
 		if (!realId) {
-			reply.type('application/json').code(1009);
+			reply.type('application/json').code(200);
 			return HiddoutViewer.response({ reactions: [] });
 		}
 		const id = toDBId(realId);
@@ -43,7 +43,7 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 	try {
 		const realId = HiddoutViewer.getId(req.params.postId);
 		if (!realId) {
-			reply.type('application/json').code(1009);
+			reply.type('application/json').code(200);
 			return HiddoutViewer.response({ reacted: false });
 		}
 		const id = toDBId(realId);
