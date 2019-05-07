@@ -3,7 +3,6 @@ import { dbCollectionFind } from '../../db/client';
 import {
 	CONTENT_IS_NOT_HERE,
 	SERVER_ERROR,
-	SUCCESS,
 } from '../../static/serverMessage';
 import { HiddoutViewer } from 'hiddout-viewer';
 
@@ -27,7 +26,12 @@ async function getUserHandler(req: Object, reply: Object): Object {
 			return HiddoutViewer.response({ msg: CONTENT_IS_NOT_HERE });
 		}
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ msg: SUCCESS });
+		const userData = result[0];
+		const user = {
+			userId: userData.user,
+			joinTime: userData.joinTime,
+		};
+		return HiddoutViewer.response({ user });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -65,6 +69,13 @@ function users(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						userData: {
+							type:'object',
+							properties: {
+								userId: { type: 'string' },
+								joinTime: {type: 'number'},
+							},
+						},
 					},
 				},
 			},
