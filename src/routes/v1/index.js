@@ -2,6 +2,7 @@ import { boards } from './boards';
 import { comments } from './comments';
 import { posts } from './posts';
 import { signup } from './signup';
-import {reactions} from './reactions';
+import { reactions } from './reactions';
+import { users } from './users';
 
-export { boards, comments, posts, signup, reactions };
+export { boards, comments, posts, signup, reactions, users };

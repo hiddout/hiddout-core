@@ -2,8 +2,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-import * as sjcl from 'sjcl';
-
 import fastify from 'fastify';
 import fastifyCORS from 'fastify-cors';
 import fastifyJWT from 'fastify-jwt';
@@ -12,7 +10,7 @@ import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import { boards, comments, posts, signup, reactions } from './routes/v1';
+import { boards, comments, posts, signup, reactions, users } from './routes/v1';
 
 import { CORSOrigin, port, secret, swaggerOptions } from './config';
 import { dbCollectionFind } from './db/client';
@@ -30,9 +28,9 @@ class HiddoutCore {
 	start(): void {
 		this._isStart = true;
 
-		this._fastify = fastify({maxParamLength:150});
+		this._fastify = fastify({ maxParamLength: 180 });
 
-		this._fastify.register(fastifyCORS,{origin: CORSOrigin});
+		this._fastify.register(fastifyCORS, { origin: CORSOrigin });
 
 		this._fastify
 			.register(fastifyJWT, {
@@ -52,13 +50,13 @@ class HiddoutCore {
 				await request.jwtVerify(onVerify);
 
 				async function onVerify(err, decoded) {
-					if (err || !decoded.user || !decoded.ip) {
+					if (err || !decoded.userId || !decoded.ip) {
 						return done(new Error('Token not valid'));
 					}
 
 					try {
 						const userInfos = await dbCollectionFind('users', {
-							user: { $eq: decoded.user },
+							user: { $eq: decoded.userId },
 						});
 
 						if (!userInfos.length) {
@@ -69,8 +67,8 @@ class HiddoutCore {
 
 						let ipIsThere = false;
 
-						for(const info of userInfo.loginInfo) {
-							if(info.ip === decoded.ip){
+						for (const info of userInfo.loginInfo) {
+							if (info.ip === decoded.ip) {
 								ipIsThere = true;
 								break;
 							}
@@ -85,59 +83,30 @@ class HiddoutCore {
 						return done(new Error('Token not valid'));
 					}
 				}
-			})
-			.decorate('verifyPWH', async (request, reply, done) => {
-				try {
-					const userInfo = await dbCollectionFind('users', {
-						user: { $eq: request.body.user },
-					});
-
-					if (!userInfo.length) {
-						return done(new Error('User/Password not valid'));
-					}
-
-					const saltBits = sjcl.codec.hex.toBits(userInfo[0].salt);
-					const derivedKey = sjcl.misc.pbkdf2(
-						request.body.pwh,
-						saltBits,
-						1000,
-						256,
-					);
-					const userKey = sjcl.codec.hex.fromBits(derivedKey);
-
-					if (userKey !== userInfo[0].userKey) {
-						return done(new Error('User/Password not valid'));
-					}
-
-					done();
-				} catch (err) {
-					return done(new Error('User/Password not valid'));
-				}
 			});
 
-		if(process.env.NODE_ENV === 'DEV'){
+		if (process.env.NODE_ENV === 'DEV') {
 			this._fastify.register(fastifySwagger, swaggerOptions);
 		}
 
-		this._fastify
-			.register(fastifyRateLimit, {
-				max: 20,
-				timeWindow: 5000,
-			});
+		this._fastify.register(fastifyRateLimit, {
+			max: 20,
+			timeWindow: 5000,
+		});
 
 		this._fastify.register(fastifyStatic, {
 			root: path.join(__dirname, '../public'),
 			prefix: '/public/', // optional: default '/',
 			setHeaders: (res, path, stat) => {
-				if(/.js$/.test(path)){
-					res.setHeader('Service-Worker-Allowed','/');
+				if (/.js$/.test(path)) {
+					res.setHeader('Service-Worker-Allowed', '/');
 				}
 			},
 		});
 
 		this._fastify.get('*', async (request, reply) => {
-			let dir = fs.readdirSync( path.join(__dirname, '../public') );
-			const htmlFiles = dir.filter( elm => elm.match(/.html/));
+			let dir = fs.readdirSync(path.join(__dirname, '../public'));
+			const htmlFiles = dir.filter((elm) => elm.match(/.html/));
 			reply.sendFile(htmlFiles[0]);
 		});
 
@@ -145,7 +114,8 @@ class HiddoutCore {
 			.register(boards, { prefix: '/api/v1' })
 			.register(comments, { prefix: '/api/v1' })
 			.register(posts, { prefix: '/api/v1' })
-			.register(reactions, {prefix: '/api/v1'})
+			.register(reactions, { prefix: '/api/v1' })
+			.register(users, { prefix: '/api/v1' })
 			.register(signup, { prefix: '/api/v1' });
 
 		this._fastify.listen(this._port, (err, address) => {
@@ -153,7 +123,7 @@ class HiddoutCore {
 				throw err;
 			}
 
-			if(process.env.NODE_ENV === 'DEV'){
+			if (process.env.NODE_ENV === 'DEV') {
 				this._fastify.swagger();
 			}
 
