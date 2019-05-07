@@ -38,7 +38,7 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 
 		if (userKey === userInfo.userKey) {
 			const token = await this.jwt.sign({
-				user: req.body.user,
+				userId: req.body.user,
 				ip: req.ip,
 			});
 
@@ -51,13 +51,17 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 				}
 			}
 
-			if(isNewIp){
-				userInfo.loginInfo.push({ip:req.ip});
-				await dbCollectionUpdateOne('users',{
-					user: { $eq: req.body.user },
-				},{
-					$set: userInfo,
-				});
+			if (isNewIp) {
+				userInfo.loginInfo.push({ ip: req.ip });
+				await dbCollectionUpdateOne(
+					'users',
+					{
+						user: { $eq: req.body.user },
+					},
+					{
+						$set: userInfo,
+					},
+				);
 			}
 
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
@@ -99,6 +103,15 @@ async function userNameCheckHandler(req: Object, reply: Object): Object {
 
 async function signUpHandler(req: Object, reply: Object): Object {
 	try {
+
+		if (/[^a-zA-Z0-9_]/.test(req.body.user) || req.body.user.length > 36) {
+			reply.type('application/json').code(401);
+			return HiddoutViewer.response({
+				token: null,
+				msg: SUCCESS,
+			});
+		}
+
 		const timeNow = new Date().getTime();
 
 		const userInfo = await dbCollectionFind('users', {
@@ -106,9 +119,8 @@ async function signUpHandler(req: Object, reply: Object): Object {
 		});
 
 		if (userInfo.length) {
-			reply.type('application/json').code(200);
+			reply.type('application/json').code(401);
 			return HiddoutViewer.response({
-				isUsed: true,
 				token: null,
 				msg: SUCCESS,
 			});
@@ -129,11 +141,10 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign({ user: req.body.user, ip: req.ip });
+		const token = await this.jwt.sign({ userId: req.body.user, ip: req.ip });
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({
-			isUsed: false,
 			token: token,
 			msg: SUCCESS,
 		});
@@ -181,6 +192,7 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						token: {type: 'string'},
 					},
 				},
 			},
