@@ -12,9 +12,9 @@ export async function dbCollectionCount(collection: string):Promise<number> {
 	return await db.collection(collection).countDocuments();
 }
 
-export async function dbCollectionFind(collection: string, queryObject: Object): any {
+export async function dbCollectionFind(collection: string, queryObject: Object, options?: Object): any {
 	const db = await getDB();
-	return await db.collection(collection).find(queryObject).toArray();
+	return await db.collection(collection).find(queryObject, options).toArray();
 }
 
 export async function dbCollectionFindOne(collection: string, queryObject: Object): any {
