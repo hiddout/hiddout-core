@@ -63,7 +63,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			title: req.body.title,
 			content: req.body.content,
 			board: req.body.board,
-			userId: req.body.userId,
+			userId: req.user.userId,
 			score: 0,
 			up: 0,
 			down: 0,
