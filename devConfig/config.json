@@ -2,7 +2,9 @@
 	"CORSOrigin": true,
 	"port": 1234,
 	"dbUrl":"mongodb://localhost:27017/",
+	"adminDBUrl": "mongodb://localhost:27017/",
 	"dbName": "test",
+	"adminDBName": "admin",
 	"secret": "mySecret",
 	"swaggerOptions":{
 		"routePrefix": "/documentation",
