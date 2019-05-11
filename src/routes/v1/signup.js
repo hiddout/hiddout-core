@@ -40,29 +40,8 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 			const token = await this.jwt.sign({
 				userId: req.body.user,
 				ip: req.ip,
+				agent: req.headers['user-agent'],
 			});
-
-			let isNewIp = true;
-
-			for (const info of userInfo.loginInfo) {
-				if (info.ip === req.ip) {
-					isNewIp = false;
-					break;
-				}
-			}
-
-			if (isNewIp) {
-				userInfo.loginInfo.push({ ip: req.ip });
-				await dbCollectionUpdateOne(
-					'users',
-					{
-						user: { $eq: req.body.user },
-					},
-					{
-						$set: userInfo,
-					},
-				);
-			}
 
 			return HiddoutViewer.response({ token: token, msg: SUCCESS });
 		} else {
@@ -141,7 +120,11 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign({ userId: req.body.user, ip: req.ip });
+		const token = await this.jwt.sign({
+			userId: req.body.user,
+			ip: req.ip ,
+			agent: req.headers['user-agent'],
+		});
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({

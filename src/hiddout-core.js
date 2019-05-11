@@ -13,7 +13,6 @@ import fastifyStatic from 'fastify-static';
 import { boards, comments, posts, signup, reactions, users } from './routes/v1';
 
 import { CORSOrigin, port, secret, swaggerOptions } from './config';
-import { dbCollectionFind } from './db/client';
 
 class HiddoutCore {
 	_isStart: boolean;
@@ -50,31 +49,12 @@ class HiddoutCore {
 				await request.jwtVerify(onVerify);
 
 				async function onVerify(err, decoded) {
-					if (err || !decoded.userId || !decoded.ip) {
+					if (err || !decoded.userId || !decoded.ip || !decoded.agent) {
 						return done(new Error('Token not valid'));
 					}
 
 					try {
-						const userInfos = await dbCollectionFind('users', {
-							user: { $eq: decoded.userId },
-						});
-
-						if (!userInfos.length) {
-							return done(new Error('Token not valid'));
-						}
-
-						const userInfo = userInfos[0];
-
-						let ipIsThere = false;
-
-						for (const info of userInfo.loginInfo) {
-							if (info.ip === decoded.ip) {
-								ipIsThere = true;
-								break;
-							}
-						}
-
-						if (!ipIsThere) {
+						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
 							return done(new Error('Token not valid'));
 						}
 
