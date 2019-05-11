@@ -173,8 +173,8 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		onRequest: (request, reply, next) => {
-			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		onRequest:(request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
 		},
 		handler: addPostHandler,
 	});

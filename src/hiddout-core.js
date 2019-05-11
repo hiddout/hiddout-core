@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import fastify from 'fastify';
 import fastifyCORS from 'fastify-cors';
 import fastifyJWT from 'fastify-jwt';
-import fastifyAuth from 'fastify-auth';
 import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
@@ -37,30 +36,33 @@ class HiddoutCore {
 				sign: {
 					expiresIn: '1h',
 				},
-			})
-			.register(fastifyAuth);
+			});
 
 		this._fastify
-			.decorate('verifyJWT', async (request, reply, done) => {
+			.decorate('verifyJWT', (request, reply, done) => {
 				if (!request.req.headers['authorization']) {
-					return done(new Error('Missing token header'));
+					reply.code(401);
+					done(new Error('Missing token header'));
 				}
 
-				await request.jwtVerify(onVerify);
+				request.jwtVerify(onVerify);
 
-				async function onVerify(err, decoded) {
+				function onVerify(err, decoded) {
 					if (err || !decoded.userId || !decoded.ip || !decoded.agent) {
-						return done(new Error('Token not valid'));
+						reply.code(401);
+						done(new Error('Token not valid'));
 					}
 
 					try {
 						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
-							return done(new Error('Token not valid'));
+							reply.code(401);
+							done(new Error('Token not valid'));
 						}
 
 						done();
 					} catch (err) {
-						return done(new Error('Token not valid'));
+						reply.code(401);
+						done(new Error('Token not valid'));
 					}
 				}
 			});
