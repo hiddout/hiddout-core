@@ -10,7 +10,6 @@ import {
 import {
 	dbCollectionFind,
 	dbCollectionInsertOne,
-	dbCollectionUpdateOne,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
