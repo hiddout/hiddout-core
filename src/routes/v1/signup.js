@@ -115,7 +115,6 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			user: req.body.user,
 			userKey: userKey,
 			salt: salt,
-			loginInfo: [{ ip: req.ip }],
 			joinTime: timeNow,
 		});
 
