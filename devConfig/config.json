@@ -1,8 +1,9 @@
 {
 	"CORSOrigin": true,
 	"port": 1234,
-	"dbUrl":"mongodb://localhost:27017/",
+	"dbUrl":"mongodb://hiddout:admin@localhost:27017?authMechanism=SCRAM-SHA-256&authSource=test",
 	"dbName": "test",
+	"adminDBName": "admin",
 	"secret": "mySecret",
 	"swaggerOptions":{
 		"routePrefix": "/documentation",
