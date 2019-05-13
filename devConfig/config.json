@@ -1,7 +1,7 @@
 {
 	"CORSOrigin": true,
 	"port": 1234,
-	"dbUrl":"mongodb://hiddout:admin@localhost:27017?authMechanism=SCRAM-SHA-256&authSource=test",
+	"dbUrl":"mongodb://hiddout:admin@localhost:27017?authSource=test",
 	"dbName": "test",
 	"adminDBName": "admin",
 	"secret": "mySecret",
