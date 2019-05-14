@@ -13,7 +13,7 @@ const POST_NUMBER_EACH_PAGE = 15;
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
-		const queryObject: Object = board ? { board: { $eq: board } } : {};
+		const queryObject: Object = board ? { board: { $eq: board } } : {board: { $ne: 'spam' }};
 		const page: number = req.query.page;
 		const result = await dbCollectionFind('posts', queryObject, { limit: POST_NUMBER_EACH_PAGE, skip: page * POST_NUMBER_EACH_PAGE });
 		reply.type('application/json').code(200);
