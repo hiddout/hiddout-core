@@ -8,13 +8,16 @@ import {
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
+const POST_NUMBER_EACH_PAGE = 15;
+
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
 		const queryObject: Object = board ? { board: { $eq: board } } : {};
-		const result = await dbCollectionFind('posts', queryObject);
+		const page: number = req.query.page;
+		const result = await dbCollectionFind('posts', queryObject, { limit: POST_NUMBER_EACH_PAGE, skip: page * POST_NUMBER_EACH_PAGE });
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ posts: result });
+		return HiddoutViewer.response({ posts: result, isLatest: result.length < POST_NUMBER_EACH_PAGE });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -143,6 +146,7 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 								},
 							},
 						},
+						isLatest: {type:'boolean'},
 					},
 				},
 			},
@@ -173,8 +177,8 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		onRequest: (request, reply, next) => {
-			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		onRequest:(request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
 		},
 		handler: addPostHandler,
 	});
