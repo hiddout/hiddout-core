@@ -8,6 +8,7 @@ import {
 	USERNAME_OR_PASSWORD_IS_WRONG,
 } from '../../static/serverMessage';
 import {
+	isAdminUser,
 	dbCollectionFind,
 	dbCollectionInsertOne,
 } from '../../db/client';
@@ -36,13 +37,22 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 		reply.type('application/json').code(200);
 
 		if (userKey === userInfo.userKey) {
-			const token = await this.jwt.sign({
+
+			let accessData = {
 				userId: req.body.user,
 				ip: req.ip,
 				agent: req.headers['user-agent'],
-			});
+			};
 
-			return HiddoutViewer.response({ token: token, msg: SUCCESS });
+			const isAdmin = await isAdminUser(accessData.userId);
+
+			if(isAdmin) {
+				accessData = {...accessData, isAdmin};
+			}
+
+			const token = await this.jwt.sign(accessData);
+
+			return HiddoutViewer.response({ token: token, isAdmin });
 		} else {
 			reply.type('application/json').code(401);
 
@@ -198,6 +208,8 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 					type: 'object',
 					properties: {
 						encryptedData: { type: 'string' },
+						token: {type: 'string'},
+						isAdmin: {type: 'boolean'},
 					},
 				},
 			},
