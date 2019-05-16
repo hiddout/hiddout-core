@@ -163,7 +163,7 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		handler: userNameCheckHandler.bind(fastify),
+		handler: userNameCheckHandler,
 	});
 
 	fastify.route({
@@ -188,7 +188,7 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		handler: signUpHandler.bind(fastify),
+		handler: signUpHandler,
 	});
 
 	fastify.route({
@@ -214,7 +214,7 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		handler: userLoginHandler.bind(fastify),
+		handler: userLoginHandler,
 	});
 
 	next();
