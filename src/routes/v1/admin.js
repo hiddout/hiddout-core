@@ -20,7 +20,8 @@ async function lockPostHandler(req: Object, reply: Object): Object {
 
 		const lockedPost = result[0];
 
-		lockedPost.isLock = true;
+		lockedPost.isLocked = true;
+		lockedPost.lockedFor = req.body.reason;
 
 		const update = await dbCollectionUpdateOne(
 			'posts',
