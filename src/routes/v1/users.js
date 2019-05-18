@@ -21,7 +21,6 @@ async function getUserHandler(req: Object, reply: Object): Object {
 		const queryObject: Object = { user: { $eq: realId } };
 		const result = await dbCollectionFind('users', queryObject);
 		if (!result.length) {
-			//TODO: catch this request
 			reply.type('application/json').code(404);
 			return HiddoutViewer.response({ msg: CONTENT_IS_NOT_HERE });
 		}

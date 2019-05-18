@@ -13,7 +13,7 @@ const POST_NUMBER_EACH_PAGE = 15;
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
-		const queryObject: Object = board ? { board: { $eq: board } } : {};
+		const queryObject: Object = board ? { board: { $eq: board } } : {board: { $ne: 'spam' }};
 		const page: number = req.query.page;
 		const result = await dbCollectionFind('posts', queryObject, { limit: POST_NUMBER_EACH_PAGE, skip: page * POST_NUMBER_EACH_PAGE });
 		reply.type('application/json').code(200);
@@ -71,6 +71,8 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			up: 0,
 			down: 0,
 			lol: 0,
+			isLock: false,
+			lockedFor:'',
 			createTime: timeNow,
 			lastUpdateTime: timeNow,
 		});
@@ -107,6 +109,8 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 								score: { type: 'number' },
 								up: { type: 'number' },
 								down: { type: 'number' },
+								isLock: {type: 'boolean'},
+								lockedFor: { type: 'string' },
 							},
 						},
 					},
@@ -143,6 +147,8 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 									score: { type: 'number' },
 									up: { type: 'number' },
 									down: { type: 'number' },
+									isLock: {type: 'boolean'},
+									lockedFor: { type: 'string' },
 								},
 							},
 						},
@@ -164,8 +170,9 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 					title: { type: 'string' },
 					content: { type: 'string' },
 					board: { type: 'string' },
+					language: { type: 'string' },
 				},
-				required: ['title', 'content', 'board'],
+				required: ['title', 'content', 'board', 'language'],
 			},
 			response: {
 				'200': {
