@@ -37,7 +37,7 @@ async function getDB(): any {
 	return client.db(dbName);
 }
 
-export async function isAdmin(name: string): any {
+export async function isAdminUser(name: string): any {
 	const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 	const db = client.db(adminDBName);
 	const result = await db.collection('founders').find({name: {$eq: name}}).toArray();

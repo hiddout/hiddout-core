@@ -9,7 +9,7 @@ import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import { boards, comments, posts, signup, reactions, users } from './routes/v1';
+import { boards, comments, posts, signup, reactions, users, admin } from './routes/v1';
 
 import { CORSOrigin, port, secret, swaggerOptions } from './config';
 
@@ -67,6 +67,35 @@ class HiddoutCore {
 				}
 			});
 
+		this._fastify
+			.decorate('verifyAdminJWT', (request, reply, done) => {
+				if (!request.req.headers['authorization']) {
+					reply.code(401);
+					done(new Error('Missing token header'));
+				}
+
+				request.jwtVerify(onVerify);
+
+				function onVerify(err, decoded) {
+					if (err || !decoded.userId || !decoded.ip || !decoded.agent || !decoded.isAdmin) {
+						reply.code(401);
+						done(new Error('Token not valid'));
+					}
+
+					try {
+						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent'] && decoded.isAdmin !== true) {
+							reply.code(401);
+							done(new Error('Token not valid'));
+						}
+
+						done();
+					} catch (err) {
+						reply.code(401);
+						done(new Error('Token not valid'));
+					}
+				}
+			});
+
 		if (process.env.NODE_ENV === 'DEV') {
 			this._fastify.register(fastifySwagger, swaggerOptions);
 		}
@@ -97,6 +126,7 @@ class HiddoutCore {
 			.register(comments, { prefix: '/api/v1' })
 			.register(posts, { prefix: '/api/v1' })
 			.register(reactions, { prefix: '/api/v1' })
+			.register(admin, { prefix: '/api/v1' })
 			.register(users, { prefix: '/api/v1' })
 			.register(signup, { prefix: '/api/v1' });
 
