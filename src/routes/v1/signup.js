@@ -10,9 +10,59 @@ import {
 import {
 	isAdminUser,
 	dbCollectionFind,
-	dbCollectionInsertOne,
+	dbCollectionInsertOne, dbCollectionUpdateOne,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
+
+async function renewTokenHandler(req: Object, reply: Object): Object {
+	try {
+		const tokenDecoded = await this.jwt.decode(req.body.token);
+
+		if (!tokenDecoded.userId || !tokenDecoded.ip || !tokenDecoded.agent) {
+			reply.code(401);
+			return { msg: 'Token not valid' };
+		}
+
+		let tokenKeyDecoded = null;
+
+		try{
+			tokenKeyDecoded  = await this.jwt.verify(req.body.tokenKey);
+		} catch (err) {
+
+			console.error(err);
+			reply.type('application/json').code(401);
+			return { msg: 'TokenKey out of date' };
+		}
+
+		if (tokenDecoded.userId !== tokenKeyDecoded.userId || tokenDecoded.ip !== req.ip ||
+			tokenDecoded.agent !== req.headers['user-agent']) {
+			reply.code(401);
+			return { msg: 'Token not valid' };
+		}
+
+		let accessData = {
+			userId: tokenDecoded.isAdmin,
+			ip: req.ip,
+			agent: req.headers['user-agent'],
+		};
+
+		if(tokenDecoded.isAdmin) {
+			if(await isAdminUser(tokenDecoded.userId)) {
+				accessData = {...accessData, isAdmin:true};
+			}
+		}
+
+		const token = await this.jwt.sign(accessData);
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ token: token });
+
+	} catch (err) {
+		console.error(err);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
 
 async function userLoginHandler(req: Object, reply: Object): Object {
 	try {
@@ -50,9 +100,32 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 				accessData = {...accessData, isAdmin};
 			}
 
-			const token = await this.jwt.sign(accessData);
+			try{
+				await this.jwt.verify(userInfo.tokenKey);
+			} catch (err) {
 
-			return HiddoutViewer.response({ token: token, isAdmin });
+				userInfo.tokenKey = await this.jwt.sign({
+					userId: req.body.user,
+				},{
+					expiresIn: '14d',
+				});
+
+				await dbCollectionUpdateOne(
+					'users',
+					{ user: userInfo.user },
+					{
+						$set: userInfo,
+					},
+				);
+			}
+
+			const token = await this.jwt.sign(accessData,{
+				expiresIn: '5s',
+			});
+
+			const tokenKey = userInfo.tokenKey;
+
+			return HiddoutViewer.response({ token, tokenKey, isAdmin });
 		} else {
 			reply.type('application/json').code(401);
 
@@ -147,6 +220,30 @@ async function signUpHandler(req: Object, reply: Object): Object {
 }
 
 function signup(fastify: fastify, opts: Object, next: () => any): void {
+	fastify.route({
+		method: 'POST',
+		url:'/renew',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					token: { type: 'string' },
+					tokenKey: { type: 'string' },
+				},
+				required: ['token', 'tokenKey'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						isUsed: { type: 'string' },
+					},
+				},
+			},
+		},
+		handler: renewTokenHandler,
+	});
+
 	fastify.route({
 		method: 'GET',
 		url: '/checkUser',

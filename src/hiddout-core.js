@@ -83,7 +83,7 @@ class HiddoutCore {
 					}
 
 					try {
-						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent'] && decoded.isAdmin !== true) {
+						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
 							reply.code(401);
 							done(new Error('Token not valid'));
 						}
