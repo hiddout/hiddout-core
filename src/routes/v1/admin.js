@@ -1,18 +1,11 @@
 //@flow
 import { dbCollectionFind, dbCollectionUpdateOne, toDBId } from '../../db/client';
-import { SERVER_ERROR, CONTENT_IS_NOT_HERE } from '../../static/serverMessage';
+import { SERVER_ERROR } from '../../static/serverMessage';
 import { HiddoutViewer } from 'hiddout-viewer';
 
 async function deletePostHandler(req: Object, reply: Object): Object {
 	try {
-		const realId = HiddoutViewer.getId(req.params.postId);
-
-		if (!realId) {
-			reply.type('application/json').code(404);
-			return HiddoutViewer.response({ msg: CONTENT_IS_NOT_HERE });
-		}
-
-		const id = toDBId(realId);
+		const id = toDBId(req.params.postId);
 
 		const result = await dbCollectionFind('posts', {
 			_id: { $eq: id },
@@ -57,14 +50,8 @@ async function deletePostHandler(req: Object, reply: Object): Object {
 
 async function movePostHandler(req: Object, reply: Object): Object {
 	try {
-		const realId = HiddoutViewer.getId(req.params.postId);
 
-		if (!realId) {
-			reply.type('application/json').code(404);
-			return HiddoutViewer.response({ msg: CONTENT_IS_NOT_HERE });
-		}
-
-		const id = toDBId(realId);
+		const id = toDBId(req.params.postId);
 
 		const result = await dbCollectionFind('posts', {
 			_id: { $eq: id },
@@ -93,14 +80,7 @@ async function movePostHandler(req: Object, reply: Object): Object {
 
 async function lockPostHandler(req: Object, reply: Object): Object {
 	try {
-		const realId = HiddoutViewer.getId(req.params.postId);
-
-		if (!realId) {
-			reply.type('application/json').code(404);
-			return HiddoutViewer.response({ msg: CONTENT_IS_NOT_HERE });
-		}
-
-		const id = toDBId(realId);
+		const id = toDBId(req.params.postId);
 
 		const result = await dbCollectionFind('posts', {
 			_id: { $eq: id },
