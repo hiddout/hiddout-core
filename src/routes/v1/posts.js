@@ -13,11 +13,19 @@ const POST_NUMBER_EACH_PAGE = 15;
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const board: string = req.query.board;
-		const queryObject: Object = board ? { board: { $eq: board } } : {board: { $ne: 'spam' }};
-		const page: number = req.query.page;
-		const result = await dbCollectionFind('posts', queryObject, { limit: POST_NUMBER_EACH_PAGE, skip: page * POST_NUMBER_EACH_PAGE });
+		const queryObject: Object = board ? { board: { $eq: board } } : {board: { $nin: ['spam','N/A'] }};
+		const page: number = parseInt(req.query.page);
+		let limit = POST_NUMBER_EACH_PAGE;
+
+		if(!page) {
+			limit += 1;
+		}
+
+		const result = await dbCollectionFind('posts', queryObject, { limit: limit, skip: page * POST_NUMBER_EACH_PAGE });
+		let isLatest = result.length < limit;
+
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ posts: result, isLatest: result.length < POST_NUMBER_EACH_PAGE });
+		return HiddoutViewer.response({ posts: !page? result.slice(0,POST_NUMBER_EACH_PAGE) : result, isLatest: isLatest});
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);

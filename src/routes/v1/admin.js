@@ -25,7 +25,7 @@ async function deletePostHandler(req: Object, reply: Object): Object {
 			up: 0,
 			down: 0,
 			lol: 0,
-			isLock: true,
+			isLocked: true,
 			lockedFor: 'N/A',
 			createTime: timeNow,
 			lastUpdateTime: timeNow,
@@ -114,13 +114,6 @@ function admin(fastify: fastify, opts: Object, next: () => any): void {
 		method: 'POST',
 		url: '/post/:postId/delete',
 		schema: {
-			body: {
-				type: 'object',
-				properties: {
-					reason: { type: 'string' },
-				},
-				required: ['reason'],
-			},
 			response: {
 				'200': {
 					type: 'object',
