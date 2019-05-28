@@ -1,5 +1,5 @@
 //@flow
-import { dbCollectionFind } from '../../db/client';
+import { dbCollectionFind, dbCollectionInsertOne, dbCollectionUpdateOne } from '../../db/client';
 import {
 	CONTENT_IS_NOT_HERE,
 	SERVER_ERROR,
@@ -8,7 +8,53 @@ import { HiddoutViewer } from 'hiddout-viewer';
 
 
 async function subscribePostHandler(req: Object, reply: Object): Object {
+	try {
+		const realId = HiddoutViewer.getId(req.params.postId);
 
+		const result = await dbCollectionFind('postSubs', {
+			postId: { $eq: realId },
+		});
+
+		let postSubscribeData = {
+			postId: realId,
+			subscribers: [
+				{
+					userId: req.user.userId,
+					isSubscribedPost: req.body.isSubscribedPost,
+				},
+			],
+		},update = null;
+
+		if(result.length) {
+			postSubscribeData = result[0];
+			const subscribers = postSubscribeData.subscribers;
+			for(let index = 0; index < subscribers.length;++index){
+				if (subscribers[index].userId === req.user.userId) {
+					postSubscribeData.subscribers[index].isSubscribedPost = req.body.isSubscribedPost;
+					break;
+				}
+			}
+
+			update = await dbCollectionUpdateOne(
+				'postSubs',
+				{ postId: realId },
+				{
+					$set: postSubscribeData,
+				},
+			);
+		}
+
+		if (!update) {
+			update = await dbCollectionInsertOne('postSubs', postSubscribeData);
+		}
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ subscribed: update.result.ok });
+	}catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
 }
 
 async function getUserHandler(req: Object, reply: Object): Object {
@@ -41,8 +87,15 @@ async function getUserHandler(req: Object, reply: Object): Object {
 function users(fastify: fastify, opts: Object, next: () => any): void {
 	fastify.route({
 		method: 'POST',
-		url:'/user/subscribe/:postID/',
+		url:'/user/subscribe/:postId/',
 		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					isSubscribedPost: { type: 'boolean' },
+				},
+				required: [ 'isSubscribedPost'],
+			},
 			response: {
 				'200': {
 					type: 'object',
