@@ -31,7 +31,7 @@
     "flow-bin": "0.99.0",
     "mocha": "6.1.4",
     "nodemon": "1.19.1",
-    "prettier": "1.17.0"
+    "prettier": "1.18.0"
   },
   "scripts": {
     "build": "babel ./src -d bin --copy-files && node ./devScript/downloadFE.js",
