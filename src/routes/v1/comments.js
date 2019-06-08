@@ -1,11 +1,14 @@
 //@flow
 
 import {
-	dbCollectionFindOne,
-	dbCollectionUpdateOne,
+	dbCollectionFind,
+	findAndModify,
+	dbCollectionInsertOne,
 	toDBId,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
+
+const COMMENT_NUMBER_EACH_PULL = 100;
 
 async function getCommentsHandler(req: Object, reply: Object): Object {
 	try {
@@ -15,13 +18,29 @@ async function getCommentsHandler(req: Object, reply: Object): Object {
 			return HiddoutViewer.response({ comments: {} });
 		}
 
+		const page: number = parseInt(req.query.page);
+		let limit = COMMENT_NUMBER_EACH_PULL;
+		if (!page) {
+			limit += 1;
+		}
+
 		const queryObject: Object = {
 			postId: { $eq: toDBId(realId) },
 		};
-		const result = await dbCollectionFindOne('comments', queryObject);
+		const result = await dbCollectionFind('comments', queryObject, {
+			limit: limit,
+			skip: page * COMMENT_NUMBER_EACH_PULL,
+		});
+		let isLatest = result.length < limit;
+
 		reply.type('application/json').code(200);
-		const comments = result ? result.comments : {};
-		return HiddoutViewer.response({ comments: comments });
+		const comments = !page
+			? result.slice(0, COMMENT_NUMBER_EACH_PULL)
+			: result;
+		return HiddoutViewer.response({
+			comments: comments,
+			isLatest: isLatest,
+		});
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -39,28 +58,31 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 		}
 
 		const timeNow = new Date().getTime();
-		const update = await dbCollectionUpdateOne(
-			'comments',
-			{ postId: toDBId(realId) },
-			{
-				$push: {
-					comments: {
-						replyTo: req.body.replyTo,
-						content: req.body.content,
-						userId: req.user.userId,
-						score: 0,
-						up: 0,
-						down: 0,
-						lol: 0,
-						createTime: timeNow,
-						lastUpdateTime: timeNow,
-					},
-				},
-			},
-			{ upsert: true },
+
+		const dbId = toDBId(realId);
+
+		const update = await findAndModify('posts',
+			{_id: dbId},
+			{$set: {lastUpdateTime: timeNow }},
 		);
+
+		const added = await dbCollectionInsertOne('comments', {
+			postId: dbId,
+			replyTo: req.body.replyTo,
+			content: req.body.content,
+			userId: req.user.userId,
+			score: 0,
+			up: 0,
+			down: 0,
+			lol: 0,
+			createTime: timeNow,
+			lastUpdateTime: timeNow,
+		});
+
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ replied: update.result.ok });
+		return HiddoutViewer.response({
+			replied: added.result.ok && update,
+		});
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -83,6 +105,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 							items: {
 								type: 'object',
 								properties: {
+									postId: { type: 'string' },
 									replyTo: { type: 'number' },
 									content: { type: 'string' },
 									userId: { type: 'string' },
@@ -95,6 +118,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 								},
 							},
 						},
+						isLatest: { type: 'boolean' },
 					},
 				},
 			},
@@ -124,7 +148,7 @@ function comments(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
-		onRequest:(request, reply, done) => {
+		onRequest: (request, reply, done) => {
 			fastify.verifyJWT(request, reply, done);
 		},
 		handler: addCommentHandler,
