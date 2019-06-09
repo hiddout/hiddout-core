@@ -53,8 +53,14 @@ class HiddoutCore {
 						done(new Error('Token not valid'));
 					}
 
+					const ipSections = decoded.ip.split('.'),
+						requestIpSections = request.ip.split('.');
+
 					try {
-						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
+						if (decoded.userId !== request.user.userId ||
+							ipSections[0] !== requestIpSections[0] ||
+							ipSections[1] !== requestIpSections[1] ||
+							decoded.agent !== request.headers['user-agent']) {
 							reply.code(401);
 							done(new Error('Token not valid'));
 						}
@@ -82,8 +88,14 @@ class HiddoutCore {
 						done(new Error('Token not valid'));
 					}
 
+					const ipSections = decoded.ip.split('.'),
+						requestIpSections = request.ip.split('.');
+
 					try {
-						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
+						if (decoded.userId !== request.user.userId ||
+							ipSections[0] !== requestIpSections[0] ||
+							ipSections[1] !== requestIpSections[1] ||
+							decoded.agent !== request.headers['user-agent']) {
 							reply.code(401);
 							done(new Error('Token not valid'));
 						}
