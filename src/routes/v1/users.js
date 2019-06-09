@@ -6,46 +6,67 @@ import {
 } from '../../static/serverMessage';
 import { HiddoutViewer } from 'hiddout-viewer';
 
+async function getMessageHandler(req: Object, reply: Object): Object {
+
+	try {
+		const result = await dbCollectionFind('messages', {
+			userId: { $eq: req.user.userId },
+		});
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ messages: result });
+	}catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
 
 async function subscribePostHandler(req: Object, reply: Object): Object {
 	try {
 		const realId = HiddoutViewer.getId(req.params.postId);
 
-		const result = await dbCollectionFind('postSubs', {
-			postId: { $eq: realId },
+		const result = await dbCollectionFind('subscriptions', {
+			userId: { $eq: req.user.userId },
 		});
 
-		let postSubscribeData = {
-			postId: realId,
-			subscribers: [
+		let postSubscription = {
+			subscription: [
 				{
-					userId: req.user.userId,
+					type: req.body.type,
+					subscriptionId: realId,
 					isSubscribedPost: req.body.isSubscribedPost,
 				},
 			],
 		},update = null;
 
 		if(result.length) {
-			postSubscribeData = result[0];
-			const subscribers = postSubscribeData.subscribers;
-			for(let index = 0; index < subscribers.length;++index){
-				if (subscribers[index].userId === req.user.userId) {
-					postSubscribeData.subscribers[index].isSubscribedPost = req.body.isSubscribedPost;
+
+			postSubscription = result[0];
+			const subscription = postSubscription.subscription;
+			for(let index = 0; index < subscription.length; ++index){
+				if (subscription[index].subscriptionId === realId) {
+					if(req.body.isSubscribedPost){
+						postSubscription.subscription[index].isSubscribedPost = req.body.isSubscribedPost;
+					} else {
+						postSubscription.subscription.splice( index, 1);
+					}
+
 					break;
 				}
 			}
 
 			update = await dbCollectionUpdateOne(
-				'postSubs',
-				{ postId: realId },
+				'subscriptions',
+				{ userId: req.user.userId },
 				{
-					$set: postSubscribeData,
+					$set: postSubscription,
 				},
 			);
 		}
 
 		if (!update) {
-			update = await dbCollectionInsertOne('postSubs', postSubscribeData);
+			update = await dbCollectionInsertOne('subscriptions', postSubscription);
 		}
 
 		reply.type('application/json').code(200);
@@ -85,6 +106,40 @@ async function getUserHandler(req: Object, reply: Object): Object {
 }
 
 function users(fastify: fastify, opts: Object, next: () => any): void {
+	fastify.route({
+		method: 'GET',
+		url:'/user/msg/',
+		schema: {
+			body: {
+				type: 'object',
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						messages: {
+							type: 'array',
+							items: {
+								type: 'object',
+								properties: {
+									type: { type: 'string' },
+									msg: { type: 'string' },
+									idLink: { type: 'string' },
+									createTime: { type: 'number' },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		onRequest: (request, reply, next) => {
+			fastify.auth([fastify.verifyJWT])(request, reply, next);
+		},
+		handler: getMessageHandler,
+	});
+
 	fastify.route({
 		method: 'POST',
 		url:'/user/subscribe/:postId/',
