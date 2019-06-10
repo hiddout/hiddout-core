@@ -1,7 +1,7 @@
 import {
 	dbCollectionFind,
 	dbCollectionInsertOne,
-	dbCollectionUpdateOne,
+	dbCollectionUpdateOne, findAndModify,
 	toDBId,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
@@ -89,25 +89,13 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 
 		const scoreResult = calculateScore(postReaction.reactions);
 
-		const posts = await dbCollectionFind('posts', {
-			_id: { $eq: id },
-		});
-
-		update = await dbCollectionUpdateOne(
-			'posts',
-			{
-				_id: id,
-			},
-			{
-				$set: {
-					...posts[0],
-					...scoreResult,
-				},
-			},
+		update = await findAndModify('posts',
+			{_id: id},
+			{$set: scoreResult},
 		);
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ reacted: update.result.ok });
+		return HiddoutViewer.response({ reacted: !!update });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);

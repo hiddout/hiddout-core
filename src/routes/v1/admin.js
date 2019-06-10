@@ -1,5 +1,5 @@
 //@flow
-import { dbCollectionFind, dbCollectionUpdateOne, toDBId } from '../../db/client';
+import { findAndModify, toDBId } from '../../db/client';
 import { SERVER_ERROR } from '../../static/serverMessage';
 import { HiddoutViewer } from 'hiddout-viewer';
 
@@ -7,40 +7,28 @@ async function deletePostHandler(req: Object, reply: Object): Object {
 	try {
 		const id = toDBId(req.params.postId);
 
-		const result = await dbCollectionFind('posts', {
-			_id: { $eq: id },
-		});
-
 		const timeNow = new Date().getTime();
 
-		let deletedPost = result[0];
-
-		deletedPost = {
-			...deletedPost,
-			title: 'N/A',
-			content: 'N/A',
-			board: 'N/A',
-			userId: 'N/A',
-			score: 0,
-			up: 0,
-			down: 0,
-			lol: 0,
-			isLocked: true,
-			lockedFor: 'N/A',
-			createTime: timeNow,
-			lastUpdateTime: timeNow,
-		};
-
-		const update = await dbCollectionUpdateOne(
-			'posts',
-			{ _id: id },
-			{
-				$set: deletedPost,
-			},
+		const update = await findAndModify('posts',
+			{_id: id},
+			{$set: {
+					title: 'N/A',
+					content: 'N/A',
+					board: 'N/A',
+					userId: 'N/A',
+					score: 0,
+					up: 0,
+					down: 0,
+					lol: 0,
+					isLocked: true,
+					lockedFor: 'N/A',
+					createTime: timeNow,
+					lastUpdateTime: timeNow,
+				}},
 		);
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ deleted: update.result.ok });
+		return HiddoutViewer.response({ deleted: !!update });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -53,24 +41,13 @@ async function movePostHandler(req: Object, reply: Object): Object {
 
 		const id = toDBId(req.params.postId);
 
-		const result = await dbCollectionFind('posts', {
-			_id: { $eq: id },
-		});
-
-		const movedPost = result[0];
-
-		movedPost.board = req.body.moveTo;
-
-		const update = await dbCollectionUpdateOne(
-			'posts',
-			{ _id: id },
-			{
-				$set: movedPost,
-			},
+		const update = await findAndModify('posts',
+			{_id: id},
+			{$set: { board: req.body.moveTo } },
 		);
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ moved: update.result.ok });
+		return HiddoutViewer.response({ moved: !!update });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);
@@ -82,25 +59,13 @@ async function lockPostHandler(req: Object, reply: Object): Object {
 	try {
 		const id = toDBId(req.params.postId);
 
-		const result = await dbCollectionFind('posts', {
-			_id: { $eq: id },
-		});
-
-		const lockedPost = result[0];
-
-		lockedPost.isLocked = true;
-		lockedPost.lockedFor = req.body.reason;
-
-		const update = await dbCollectionUpdateOne(
-			'posts',
-			{ _id: id },
-			{
-				$set: lockedPost,
-			},
+		const update = await findAndModify('posts',
+			{_id: id},
+			{$set: { isLocked: true, lockedFor: req.body.reason} },
 		);
 
 		reply.type('application/json').code(200);
-		return HiddoutViewer.response({ locked: update.result.ok });
+		return HiddoutViewer.response({ locked: !!update });
 	} catch (err) {
 		console.log(err.stack);
 		reply.type('application/json').code(500);

@@ -17,6 +17,11 @@ export async function dbCollectionFind(collection: string, queryObject: Object, 
 	return await db.collection(collection).find(queryObject, options).toArray();
 }
 
+export async function findAndModify(collection: string, queryObject: Object, options: Object): any {
+	const db = await getDB();
+	return await db.collection(collection).findOneAndUpdate(queryObject, options);
+}
+
 export async function dbCollectionFindOne(collection: string, queryObject: Object): any {
 	const db = await getDB();
 	return db.collection(collection).findOne(queryObject);

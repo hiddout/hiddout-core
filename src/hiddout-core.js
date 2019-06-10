@@ -9,7 +9,15 @@ import fastifyRateLimit from 'fastify-rate-limit';
 import fastifySwagger from 'fastify-swagger';
 import fastifyStatic from 'fastify-static';
 
-import { boards, comments, posts, signup, reactions, users, admin } from './routes/v1';
+import {
+	boards,
+	comments,
+	posts,
+	signup,
+	reactions,
+	users,
+	admin,
+} from './routes/v1';
 
 import { CORSOrigin, port, secret, swaggerOptions } from './config';
 
@@ -30,71 +38,85 @@ class HiddoutCore {
 
 		this._fastify.register(fastifyCORS, { origin: CORSOrigin });
 
-		this._fastify
-			.register(fastifyJWT, {
-				secret: secret,
-				sign: {
-					expiresIn: '1h',
-				},
-			});
+		this._fastify.register(fastifyJWT, {
+			secret: secret,
+			sign: {
+				expiresIn: '1h',
+			},
+		});
 
-		this._fastify
-			.decorate('verifyJWT', (request, reply, done) => {
-				if (!request.req.headers['authorization']) {
+		this._fastify.decorate('verifyJWT', (request, reply, done) => {
+			if (!request.req.headers['authorization']) {
+				reply.code(401);
+				done(new Error('Missing token header'));
+			}
+
+			request.jwtVerify(onVerify);
+
+			function onVerify(err, decoded) {
+				try {
+					if (err || !decoded) {
+						reply.code(401);
+						done(new Error('Token not valid'));
+					}
+
+					const ipSections = decoded.ip.split('.'),
+						requestIpSections = request.ip.split('.');
+
+					if (
+						decoded.userId !== request.user.userId ||
+						ipSections[0] !== requestIpSections[0] ||
+						ipSections[1] !== requestIpSections[1] ||
+						decoded.agent !== request.headers['user-agent']
+					) {
+						reply.code(401);
+						done(new Error('Token not valid'));
+					}
+
+					done();
+				} catch (err) {
 					reply.code(401);
-					done(new Error('Missing token header'));
+					done(new Error('Token not valid'));
 				}
+			}
+		});
 
-				request.jwtVerify(onVerify);
+		this._fastify.decorate('verifyAdminJWT', (request, reply, done) => {
+			if (!request.req.headers['authorization']) {
+				reply.code(401);
+				done(new Error('Missing token header'));
+			}
 
-				function onVerify(err, decoded) {
-					if (err || !decoded.userId || !decoded.ip || !decoded.agent) {
+			request.jwtVerify(onVerify);
+
+			function onVerify(err, decoded) {
+				try {
+					if (err || !decoded) {
 						reply.code(401);
 						done(new Error('Token not valid'));
 					}
 
-					try {
-						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
-							reply.code(401);
-							done(new Error('Token not valid'));
-						}
+					const ipSections = decoded.ip.split('.'),
+						requestIpSections = request.ip.split('.');
 
-						done();
-					} catch (err) {
+					if (
+						decoded.userId !== request.user.userId ||
+						ipSections[0] !== requestIpSections[0] ||
+						ipSections[1] !== requestIpSections[1] ||
+						!decoded.isAdmin ||
+						decoded.agent !== request.headers['user-agent']
+					) {
 						reply.code(401);
 						done(new Error('Token not valid'));
 					}
-				}
-			});
 
-		this._fastify
-			.decorate('verifyAdminJWT', (request, reply, done) => {
-				if (!request.req.headers['authorization']) {
+					done();
+				} catch (err) {
 					reply.code(401);
-					done(new Error('Missing token header'));
+					done(new Error('Token not valid'));
 				}
-
-				request.jwtVerify(onVerify);
-
-				function onVerify(err, decoded) {
-					if (err || !decoded.userId || !decoded.ip || !decoded.agent || !decoded.isAdmin) {
-						reply.code(401);
-						done(new Error('Token not valid'));
-					}
-
-					try {
-						if (decoded.ip !== request.ip && decoded.agent !== request.headers['user-agent']) {
-							reply.code(401);
-							done(new Error('Token not valid'));
-						}
-
-						done();
-					} catch (err) {
-						reply.code(401);
-						done(new Error('Token not valid'));
-					}
-				}
-			});
+			}
+		});
 
 		if (process.env.NODE_ENV === 'DEV') {
 			this._fastify.register(fastifySwagger, swaggerOptions);

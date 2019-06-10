@@ -34,9 +34,13 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 			return { msg: 'TokenKey out of date' };
 		}
 
+		const ipSections = tokenDecoded.ip.split('.'),
+			requestIpSections = req.ip.split('.');
+
 		if (
 			tokenDecoded.userId !== tokenKeyDecoded.userId ||
-			tokenDecoded.ip !== req.ip ||
+			ipSections[0] !== requestIpSections[0] ||
+			ipSections[1] !== requestIpSections[1] ||
 			tokenDecoded.agent !== req.headers['user-agent']
 		) {
 			reply.code(401);
