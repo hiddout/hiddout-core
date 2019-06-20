@@ -90,7 +90,7 @@ async function subscribePostHandler(req: Object, reply: Object): Object {
 		}
 
 		if (!update) {
-			update = await dbCollectionInsertOne('subscriptions', postSubscription);
+			update = await dbCollectionInsertOne('subscriptions', {userId: req.user.userId, ...postSubscription});
 		}
 
 		reply.type('application/json').code(200);
@@ -134,9 +134,6 @@ function users(fastify: fastify, opts: Object, next: () => any): void {
 		method: 'GET',
 		url:'/user/subscription',
 		schema: {
-			body: {
-				type: 'object',
-			},
 			response: {
 				'200': {
 					type: 'object',
@@ -156,6 +153,9 @@ function users(fastify: fastify, opts: Object, next: () => any): void {
 					},
 				},
 			},
+		},
+		onRequest:(request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
 		},
 		handler: getSubscriptionMessageHandler,
 	});
