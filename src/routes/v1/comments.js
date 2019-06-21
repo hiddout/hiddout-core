@@ -2,7 +2,7 @@
 
 import {
 	dbCollectionFind,
-	findAndModify,
+	dbCollectionUpdateOne,
 	dbCollectionInsertOne,
 	toDBId,
 } from '../../db/client';
@@ -61,7 +61,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 
 		const dbId = toDBId(realId);
 
-		const update = await findAndModify('posts',
+		const update = await dbCollectionUpdateOne('posts',
 			{_id: dbId},
 			{$set: {lastUpdateTime: timeNow }},
 		);
@@ -81,7 +81,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({
-			replied: added.result.ok && update,
+			replied: added.result.ok && update.result.ok,
 		});
 	} catch (err) {
 		console.log(err.stack);

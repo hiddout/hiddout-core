@@ -3,7 +3,7 @@
 	"port": 1234,
 	"dbUrl":"mongodb://hiddout:admin@localhost:27017?authSource=test",
 	"dbName": "test",
-	"adminDBName": "admin",
+	"adminDBName": "adminList",
 	"secret": "mySecret",
 	"swaggerOptions":{
 		"routePrefix": "/documentation",

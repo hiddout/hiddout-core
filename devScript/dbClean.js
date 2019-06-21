@@ -1,4 +1,6 @@
+db.dropUser("hiddout", {w: "majority", wtimeout: 5000})
 db.posts.drop()
 db.boards.drop()
 db.users.drop()
 db.comments.drop()
+db.reactions.drop()
