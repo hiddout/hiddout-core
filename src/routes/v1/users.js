@@ -28,9 +28,6 @@ async function getSubscriptionMessageHandler(req: Object, reply: Object): Object
 						if(queryResult[0].lastUpdateTime > subscription[index].lastUpdateTime ) {
 							subscriptions.push({type:TYPE_POST, content: queryResult[0].title, subscriptionId: queryResult[0]._id});
 						}
-						break;
-					default:
-						break;
 				}
 			}
 		}
@@ -54,17 +51,18 @@ async function subscribePostHandler(req: Object, reply: Object): Object {
 
 		const timeNow = new Date().getTime();
 
+		const newSubscription = {
+			type: req.body.type,
+			subscriptionId: realId,
+			lastUpdateTime: timeNow,
+		};
+
 		let postSubscription = {
-			subscription: [
-				{
-					type: req.body.type,
-					subscriptionId: realId,
-					lastUpdateTime: timeNow,
-				},
-			],
+			subscription: [newSubscription],
 		},update = null;
 
 		if(result.length) {
+			let isChanged = false;
 
 			postSubscription = result[0];
 			const subscription = postSubscription.subscription;
@@ -75,9 +73,14 @@ async function subscribePostHandler(req: Object, reply: Object): Object {
 					} else {
 						postSubscription.subscription.splice( index, 1);
 					}
+					isChanged = true;
 
 					break;
 				}
+			}
+
+			if(!isChanged){
+				postSubscription.subscription.push(newSubscription);
 			}
 
 			update = await dbCollectionUpdateOne(

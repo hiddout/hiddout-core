@@ -55,7 +55,7 @@ class HiddoutCore {
 
 			function onVerify(err, decoded) {
 				try {
-					if (err || !decoded || !decoded.ip || !decoded.userId || !decoded.agent) {
+					if (err || !decoded) {
 						reply.code(401);
 						done(new Error('Token not valid'));
 					}
@@ -91,7 +91,7 @@ class HiddoutCore {
 
 			function onVerify(err, decoded) {
 				try {
-					if (err || !decoded || !decoded.ip || !decoded.userId || !decoded.agent) {
+					if (err || !decoded) {
 						reply.code(401);
 						done(new Error('Token not valid'));
 					}

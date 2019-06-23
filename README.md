@@ -5,7 +5,6 @@
 ### install
 * MongoDB Server **4.0.x**
 * run `npm i && npm run dbinit`
-* edit your hosts, point `www.hiddout.com` to `127.0.0.1`
 ### dev
 * run `npm run dev`
 * start `hiddout-client` together to begin development
