@@ -3,6 +3,7 @@
 import * as sjcl from 'sjcl';
 
 import {
+	CONTENT_IS_NOT_HERE,
 	SERVER_ERROR,
 	SUCCESS,
 	USERNAME_OR_PASSWORD_IS_WRONG,
@@ -167,6 +168,83 @@ async function userNameCheckHandler(req: Object, reply: Object): Object {
 	}
 }
 
+async function changePassWordHandler(req: Object, reply: Object): Object {
+	try {
+		const userInfos = await dbCollectionFind('users', {
+			user: { $eq: req.user.userId },
+		});
+
+		if (!userInfos.length) {
+			reply.type('application/json').code(401);
+			return {
+				msg: CONTENT_IS_NOT_HERE,
+			};
+		}
+
+		const userInfo = userInfos[0];
+
+		const saltBits = sjcl.codec.hex.toBits(userInfo.salt);
+		const derivedKey = sjcl.misc.pbkdf2(req.body.old, saltBits, 1000, 256);
+		const userKey = sjcl.codec.hex.fromBits(derivedKey);
+
+		reply.type('application/json').code(200);
+
+		if (userKey === userInfo.userKey) {
+			let accessData = {
+				userId: req.user.userId,
+				ip: req.ip,
+				agent: req.headers['user-agent'],
+			};
+
+			const isAdmin = await isAdminUser(accessData.userId);
+
+			if (isAdmin) {
+				accessData = { ...accessData, isAdmin };
+			}
+
+			const newSaltBits = sjcl.random.randomWords(16);
+
+			const newDerivedKey = sjcl.misc.pbkdf2(req.body.new, newSaltBits, 1000, 256);
+
+			userInfo.userKey = sjcl.codec.hex.fromBits(newDerivedKey);
+			userInfo.salt = sjcl.codec.hex.fromBits(newSaltBits);
+
+			userInfo.tokenKey = await this.jwt.sign(
+				{
+					userId: req.user.userId,
+				},
+				{
+					expiresIn: isAdmin ? '1d' : '14d',
+				},
+			);
+
+			const update = await dbCollectionUpdateOne(
+				'users',
+				{ user: userInfo.user },
+				{
+					$set: userInfo,
+				},
+			);
+
+			const token = await this.jwt.sign(accessData);
+
+			const tokenKey = userInfo.tokenKey;
+
+			return HiddoutViewer.response({ changed: update.result.ok, token, tokenKey, isAdmin });
+		} else {
+			reply.type('application/json').code(200);
+
+			return HiddoutViewer.response({
+				changed: false,
+			});
+		}
+	}catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: err.errmsg };
+	}
+}
+
 async function signUpHandler(req: Object, reply: Object): Object {
 	try {
 		if (/[^a-zA-Z0-9_]/.test(req.body.user) || req.body.user.length > 36) {
@@ -277,6 +355,37 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 			},
 		},
 		handler: userNameCheckHandler,
+	});
+
+	fastify.route({
+		method: 'POST',
+		url: '/changePassWord',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					old: { type: 'string' },
+					new: { type: 'string' },
+				},
+				required: ['old','new'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						changed: { type: 'boolean' },
+						token: { type: 'string' },
+						tokenKey: { type: 'string' },
+						isAdmin: { type: 'boolean' },
+					},
+				},
+			},
+		},
+		onRequest:(request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
+		},
+		handler: changePassWordHandler,
 	});
 
 	fastify.route({
