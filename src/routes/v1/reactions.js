@@ -156,6 +156,9 @@ function reactions(fastify: fastify, opts: Object, next: () => any): void {
 				},
 			},
 		},
+		onRequest:(request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
+		},
 		handler: getPostReactionsHandler,
 	});
 
