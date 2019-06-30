@@ -13,10 +13,10 @@ const POST_NUMBER_EACH_PAGE = 15;
 async function getPostsHandler(req: Object, reply: Object): Object {
 	try {
 		const prefer: string = req.query.prefer;
-		const perferLngObject:Object = prefer? {language: { $in: prefer.split(',') }} : {};
+		const preferLngObject:Object = prefer? {language: { $in: prefer.split(',') }} : {};
 		const board: string = req.query.board;
 		const boardObject = board ? { board: { $eq: board } } : {board: { $nin: ['spam','N/A'] }};
-		const queryObject: Object = {...perferLngObject, ...boardObject};
+		const queryObject: Object = {...preferLngObject, ...boardObject};
 		const page: number = parseInt(req.query.page);
 		let limit = POST_NUMBER_EACH_PAGE;
 
