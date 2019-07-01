@@ -63,6 +63,11 @@ async function getSubscriptionHandler(req: Object, reply: Object): Object {
 			userId: { $eq: req.user.userId },
 		});
 
+		if(!result.length) {
+			reply.type('application/json').code(200);
+			return HiddoutViewer.response({ subscribed: false });
+		}
+
 		let postSubscription = result[0],
 			subscribed = false;
 		const subscription = postSubscription.subscription;
