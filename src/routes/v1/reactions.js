@@ -52,26 +52,34 @@ async function reactPostHandler(req: Object, reply: Object): Object {
 			postId: { $eq: id },
 		});
 
+		const newReaction = {
+			userId: req.user.userId,
+			reaction: req.body.reaction,
+		};
+
 		let postReaction = {
 				postId: id,
 				reactions: [
-					{
-						userId: req.user.userId,
-						reaction: req.body.reaction,
-					},
+					newReaction,
 				],
 			},
 			update = null;
 
 		if (result.length) {
+			let isReacted = false;
 			postReaction = result[0];
 			const reactions = postReaction.reactions;
 			for (let index = 0; index < reactions.length; ++index) {
 				const react = reactions[index];
 				if (react.userId === req.user.userId) {
 					postReaction.reactions[index].reaction = req.body.reaction;
+					isReacted = true;
 					break;
 				}
+			}
+
+			if(!isReacted) {
+				postReaction.reactions.push(newReaction);
 			}
 
 			update = await dbCollectionUpdateOne(
