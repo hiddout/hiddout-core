@@ -18,13 +18,6 @@ import { HiddoutViewer } from 'hiddout-viewer';
 
 async function renewTokenHandler(req: Object, reply: Object): Object {
 	try {
-		const tokenDecoded = await this.jwt.decode(req.body.token);
-
-		if (!tokenDecoded.userId || !tokenDecoded.ip || !tokenDecoded.agent) {
-			reply.code(401);
-			return { msg: 'Token not valid' };
-		}
-
 		let tokenKeyDecoded = null;
 
 		try {
@@ -35,27 +28,33 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 			return { msg: 'TokenKey out of date' };
 		}
 
-		const ipSections = tokenDecoded.ip.split('.'),
-			requestIpSections = req.ip.split('.');
+		const userInfos = await dbCollectionFind('users', {
+			user: { $eq: tokenKeyDecoded.userId },
+		});
+
+		const userInfo = userInfos[0];
+
+		if(userInfo.tokenKey !== req.body.tokenKey){
+			reply.type('application/json').code(401);
+			return { msg: 'TokenKey not match' };
+		}
 
 		if (
-			tokenDecoded.userId !== tokenKeyDecoded.userId ||
-			ipSections[0] !== requestIpSections[0] ||
-			ipSections[1] !== requestIpSections[1] ||
-			tokenDecoded.agent !== req.headers['user-agent']
+			tokenKeyDecoded.ip !== req.ip ||
+			tokenKeyDecoded.agent !== req.headers['user-agent']
 		) {
 			reply.code(401);
 			return { msg: 'Token not valid' };
 		}
 
 		let accessData = {
-			userId: tokenDecoded.userId,
+			userId: tokenKeyDecoded.userId,
 			ip: req.ip,
 			agent: req.headers['user-agent'],
 		};
 
-		if (tokenDecoded.isAdmin) {
-			if (await isAdminUser(tokenDecoded.userId)) {
+		if (tokenKeyDecoded.isAdmin) {
+			if (await isAdminUser(tokenKeyDecoded.userId)) {
 				accessData = { ...accessData, isAdmin: true };
 			}
 		}
@@ -109,13 +108,14 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 			try {
 				await this.jwt.verify(userInfo.tokenKey);
 			} catch (err) {
+				const tokenKeySignOptions = {
+					...this.jwt.options.sign,
+					expiresIn: isAdmin ? '1d' : '14d',
+				};
+
 				userInfo.tokenKey = await this.jwt.sign(
-					{
-						userId: req.body.user,
-					},
-					{
-						expiresIn: isAdmin ? '1d' : '14d',
-					},
+					accessData,
+					tokenKeySignOptions,
 				);
 
 				await dbCollectionUpdateOne(
@@ -209,13 +209,16 @@ async function changePassWordHandler(req: Object, reply: Object): Object {
 			userInfo.userKey = sjcl.codec.hex.fromBits(newDerivedKey);
 			userInfo.salt = sjcl.codec.hex.fromBits(newSaltBits);
 
+			const tokenKeySignOptions = {
+				...this.jwt.options.sign,
+				expiresIn: isAdmin ? '1d' : '14d',
+			};
+
 			userInfo.tokenKey = await this.jwt.sign(
 				{
 					userId: req.user.userId,
 				},
-				{
-					expiresIn: isAdmin ? '1d' : '14d',
-				},
+				tokenKeySignOptions,
 			);
 
 			const update = await dbCollectionUpdateOne(
@@ -276,13 +279,16 @@ async function signUpHandler(req: Object, reply: Object): Object {
 		const userKey = sjcl.codec.hex.fromBits(derivedKey);
 		const salt = sjcl.codec.hex.fromBits(saltBits);
 
+		const tokenKeySignOptions = {
+			...this.jwt.options.sign,
+			expiresIn: '1d',
+		};
+
 		const tokenKey = await this.jwt.sign(
 			{
 				userId: req.body.user,
 			},
-			{
-				expiresIn: '1d',
-			},
+			tokenKeySignOptions,
 		);
 
 		await dbCollectionInsertOne('users', {
@@ -320,10 +326,9 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 			body: {
 				type: 'object',
 				properties: {
-					token: { type: 'string' },
 					tokenKey: { type: 'string' },
 				},
-				required: ['token', 'tokenKey'],
+				required: ['tokenKey'],
 			},
 			response: {
 				'200': {
