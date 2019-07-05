@@ -42,6 +42,12 @@ class HiddoutCore {
 			secret: secret,
 			sign: {
 				expiresIn: '1h',
+				algorithm: 'HS256',
+				issuer: 'hiddout.com',
+			},
+			verify: {
+				algorithms: ['HS256'],
+				issuer: 'hiddout.com',
 			},
 		});
 
