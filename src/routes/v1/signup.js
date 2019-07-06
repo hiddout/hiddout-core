@@ -39,8 +39,12 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 			return { msg: 'TokenKey not match' };
 		}
 
+		const ipSections = tokenKeyDecoded.ip.split('.'),
+			requestIpSections = req.ip.split('.');
+
 		if (
-			tokenKeyDecoded.ip !== req.ip ||
+			ipSections[0] !== requestIpSections[0] ||
+			ipSections[1] !== requestIpSections[1] ||
 			tokenKeyDecoded.agent !== req.headers['user-agent']
 		) {
 			reply.code(401);
@@ -294,6 +298,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 		await dbCollectionInsertOne('users', {
 			user: req.body.user,
 			userKey: userKey,
+			avatar: 0,
 			tokenKey: tokenKey,
 			salt: salt,
 			joinTime: timeNow,
