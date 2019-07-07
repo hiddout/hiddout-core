@@ -215,6 +215,7 @@ async function getUserHandler(req: Object, reply: Object): Object {
 }
 
 function users(fastify: fastify, opts: Object, next: () => any): void {
+
 	fastify.route({
 		method: 'GET',
 		url: '/user/subscription',
