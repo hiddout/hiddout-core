@@ -54,7 +54,7 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 		let accessData = {
 			userId: tokenKeyDecoded.userId,
 			ip: tokenKeyDecoded.ip,
-			agent: tokenKeyDecoded.headers['user-agent'],
+			agent: tokenKeyDecoded.agent,
 		};
 
 		if (tokenKeyDecoded.isAdmin) {
