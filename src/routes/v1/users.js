@@ -87,6 +87,33 @@ async function getSubscriptionHandler(req: Object, reply: Object): Object {
 	}
 }
 
+async function changeAvatarHandler(req: Object, reply: Object): Object {
+	try {
+		const userInfos = await dbCollectionFind('users', {
+			user: { $eq: req.user.userId },
+		});
+
+		const userInfo = userInfos[0];
+		userInfo.avatar = req.body.avatarId;
+
+		const update = await dbCollectionUpdateOne(
+			'users',
+			{ user: req.user.userId },
+			{
+				$set: userInfo,
+			},
+		);
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ changed: update.result.ok });
+	}
+	catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
+
 async function subscribePostHandler(req: Object, reply: Object): Object {
 	try {
 		const realId = HiddoutViewer.getId(req.params.postId);
@@ -176,6 +203,7 @@ async function getUserHandler(req: Object, reply: Object): Object {
 		const userData = result[0];
 		const user = {
 			userId: userData.user,
+			avatar: userData.avatar || 0,
 			joinTime: userData.joinTime,
 		};
 		return HiddoutViewer.response({ user });
@@ -239,6 +267,33 @@ function users(fastify: fastify, opts: Object, next: () => any): void {
 
 	fastify.route({
 		method: 'POST',
+		url: '/user/avatar',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					avatarId: { type: 'number' },
+				},
+				required: ['avatarId'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						changed: { type: 'boolean' },
+					},
+				},
+			},
+		},
+		onRequest: (request, reply, done) => {
+			fastify.verifyJWT(request, reply, done);
+		},
+		handler: changeAvatarHandler,
+	});
+
+	fastify.route({
+		method: 'POST',
 		url: '/user/subscribe/:postId',
 		schema: {
 			body: {
@@ -278,6 +333,7 @@ function users(fastify: fastify, opts: Object, next: () => any): void {
 							type: 'object',
 							properties: {
 								userId: { type: 'string' },
+								avatar: { type: 'number' },
 								joinTime: { type: 'number' },
 							},
 						},

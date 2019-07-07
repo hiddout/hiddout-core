@@ -39,8 +39,12 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 			return { msg: 'TokenKey not match' };
 		}
 
+		const ipSections = tokenKeyDecoded.ip.split('.'),
+			requestIpSections = req.ip.split('.');
+
 		if (
-			tokenKeyDecoded.ip !== req.ip ||
+			ipSections[0] !== requestIpSections[0] ||
+			ipSections[1] !== requestIpSections[1] ||
 			tokenKeyDecoded.agent !== req.headers['user-agent']
 		) {
 			reply.code(401);
@@ -49,8 +53,8 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 
 		let accessData = {
 			userId: tokenKeyDecoded.userId,
-			ip: req.ip,
-			agent: req.headers['user-agent'],
+			ip: tokenKeyDecoded.ip,
+			agent: tokenKeyDecoded.headers['user-agent'],
 		};
 
 		if (tokenKeyDecoded.isAdmin) {
@@ -215,9 +219,7 @@ async function changePassWordHandler(req: Object, reply: Object): Object {
 			};
 
 			userInfo.tokenKey = await this.jwt.sign(
-				{
-					userId: req.user.userId,
-				},
+				accessData,
 				tokenKeySignOptions,
 			);
 
@@ -284,16 +286,21 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			expiresIn: '1d',
 		};
 
+		const accessData = {
+			userId: req.body.user,
+			ip: req.ip,
+			agent: req.headers['user-agent'],
+		};
+
 		const tokenKey = await this.jwt.sign(
-			{
-				userId: req.body.user,
-			},
+			accessData,
 			tokenKeySignOptions,
 		);
 
 		await dbCollectionInsertOne('users', {
 			user: req.body.user,
 			userKey: userKey,
+			avatar: 0,
 			tokenKey: tokenKey,
 			salt: salt,
 			joinTime: timeNow,
