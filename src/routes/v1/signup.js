@@ -53,8 +53,8 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 
 		let accessData = {
 			userId: tokenKeyDecoded.userId,
-			ip: req.ip,
-			agent: req.headers['user-agent'],
+			ip: tokenKeyDecoded.ip,
+			agent: tokenKeyDecoded.headers['user-agent'],
 		};
 
 		if (tokenKeyDecoded.isAdmin) {
@@ -219,9 +219,7 @@ async function changePassWordHandler(req: Object, reply: Object): Object {
 			};
 
 			userInfo.tokenKey = await this.jwt.sign(
-				{
-					userId: req.user.userId,
-				},
+				accessData,
 				tokenKeySignOptions,
 			);
 
@@ -288,10 +286,14 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			expiresIn: '1d',
 		};
 
+		const accessData = {
+			userId: req.body.user,
+			ip: req.ip,
+			agent: req.headers['user-agent'],
+		};
+
 		const tokenKey = await this.jwt.sign(
-			{
-				userId: req.body.user,
-			},
+			accessData,
 			tokenKeySignOptions,
 		);
 
