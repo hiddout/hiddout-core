@@ -12,7 +12,7 @@ import {
 	isAdminUser,
 	dbCollectionFind,
 	dbCollectionInsertOne,
-	dbCollectionUpdateOne,
+	dbCollectionUpdateOne, dbDeleteOne, dbDeleteMany, dbUpdateMany,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
 
@@ -67,6 +67,75 @@ async function renewTokenHandler(req: Object, reply: Object): Object {
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ token: token });
+	} catch (err) {
+		console.error(err);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
+
+async function deleteAccountHandler(req: Object, reply: Object): Object {
+	try {
+		const userInfos = await dbCollectionFind('users', {
+			user: { $eq: req.body.user },
+		});
+
+		if (!userInfos.length) {
+			reply.type('application/json').code(401);
+			return {
+				isDone: false,
+				msg: USERNAME_OR_PASSWORD_IS_WRONG,
+			};
+		}
+
+		const userInfo = userInfos[0];
+
+		const saltBits = sjcl.codec.hex.toBits(userInfo.salt);
+		const derivedKey = sjcl.misc.pbkdf2(req.body.pwh, saltBits, 1000, 256);
+		const userKey = sjcl.codec.hex.fromBits(derivedKey);
+
+		reply.type('application/json').code(200);
+
+		if (userKey === userInfo.userKey) {
+
+			await dbDeleteOne(
+				'users',
+				{ user: req.body.user },
+			);
+
+			await dbDeleteMany(
+				'posts',
+				{ userId: req.body.user },
+			);
+
+			await dbUpdateMany(
+				'comments',
+				{ userId: req.body.user },
+				{ $set: {
+						replyTo: 0,
+						content: 'N/A',
+						userId: 'N/A',
+						score: 0,
+						up: 0,
+						down: 0,
+						lol: 0,
+					},
+				}
+			);
+
+			reply.type('application/json').code(200);
+
+			return HiddoutViewer.response({
+				isDone: true,
+			});
+		} else {
+			reply.type('application/json').code(200);
+
+			return HiddoutViewer.response({
+				isDone: false,
+			});
+		}
+
 	} catch (err) {
 		console.error(err);
 		reply.type('application/json').code(500);
@@ -306,11 +375,7 @@ async function signUpHandler(req: Object, reply: Object): Object {
 			joinTime: timeNow,
 		});
 
-		const token = await this.jwt.sign({
-			userId: req.body.user,
-			ip: req.ip,
-			agent: req.headers['user-agent'],
-		});
+		const token = await this.jwt.sign(accessData);
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({
@@ -424,6 +489,31 @@ function signup(fastify: fastify, opts: Object, next: () => any): void {
 			},
 		},
 		handler: signUpHandler,
+	});
+
+	fastify.route({
+		method: 'POST',
+		url:'/account/delete',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					user: { type: 'string' },
+					pwh: {type: 'string' },
+				},
+				required: ['user', 'pwh'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						isDone: { type: 'boolean' },
+					},
+				},
+			},
+		},
+		handler: deleteAccountHandler,
 	});
 
 	fastify.route({

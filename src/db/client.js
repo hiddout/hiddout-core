@@ -22,6 +22,21 @@ export async function dbCollectionInsertOne(collection: string, queryObject: Obj
 	return await db.collection(collection).insertOne(queryObject);
 }
 
+export async function dbDeleteOne(collection: string, queryObject: Object): Promise<any> {
+	const db = await getDB();
+	return await db.collection(collection).deleteOne(queryObject);
+}
+
+export async function dbDeleteMany(collection: string, queryObject: Object): Promise<any> {
+	const db = await getDB();
+	return await db.collection(collection).deleteMany(queryObject);
+}
+
+export async function dbUpdateMany(collection: string, ...queryObject: any): Promise<any> {
+	const db = await getDB();
+	return await db.collection(collection).updateMany(...queryObject);
+}
+
 async function getDB(): any {
 	const client = await MongoClient.connect(dbUrl, { useNewUrlParser: true });
 	return client.db(dbName);
