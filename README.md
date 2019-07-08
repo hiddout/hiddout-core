@@ -4,7 +4,7 @@
 
 ### install
 * MongoDB Server **4.0.x**
-* run `npm i && npm run dbinit`
+* run `npm i && npm run dbinit && npm run build`
 ### dev
 * run `npm run dev`
 * start `hiddout-client` together to begin development
