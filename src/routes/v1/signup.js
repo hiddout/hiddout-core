@@ -108,6 +108,11 @@ async function deleteAccountHandler(req: Object, reply: Object): Object {
 				{ userId: req.body.user },
 			);
 
+			await dbDeleteMany(
+				'subscriptions',
+				{ userId: req.body.user },
+			);
+
 			await dbUpdateMany(
 				'comments',
 				{ userId: req.body.user },

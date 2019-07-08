@@ -71,6 +71,11 @@ async function getPostHandler(req: Object, reply: Object): Object {
 async function addPostHandler(req: Object, reply: Object): Object {
 	try {
 
+		if(req.body.title.length > 120) {
+			reply.type('application/json').code(500);
+			return { msg: SERVER_ERROR };
+		}
+
 		const timeNow = new Date().getTime();
 
 		const result = await dbCollectionInsertOne('posts', {
