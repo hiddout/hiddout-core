@@ -178,27 +178,23 @@ async function userLoginHandler(req: Object, reply: Object): Object {
 				accessData = { ...accessData, isAdmin };
 			}
 
-			try {
-				await this.jwt.verify(userInfo.tokenKey);
-			} catch (err) {
-				const tokenKeySignOptions = {
-					...this.jwt.options.sign,
-					expiresIn: isAdmin ? '1d' : '14d',
-				};
+			const tokenKeySignOptions = {
+				...this.jwt.options.sign,
+				expiresIn: isAdmin ? '1d' : '14d',
+			};
 
-				userInfo.tokenKey = await this.jwt.sign(
-					accessData,
-					tokenKeySignOptions,
-				);
+			userInfo.tokenKey = await this.jwt.sign(
+				accessData,
+				tokenKeySignOptions,
+			);
 
-				await dbCollectionUpdateOne(
-					'users',
-					{ user: userInfo.user },
-					{
-						$set: userInfo,
-					},
-				);
-			}
+			await dbCollectionUpdateOne(
+				'users',
+				{ user: userInfo.user },
+				{
+					$set: userInfo,
+				},
+			);
 
 			const token = await this.jwt.sign(accessData);
 
