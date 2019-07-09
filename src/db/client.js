@@ -7,10 +7,15 @@ export function toDBId(Id: string){
 	return ObjectId(Id);
 }
 
-export async function dbCollectionFind(collection: string, queryObject: Object, options?: Object): any {
+export async function dbCollectionFind(collection: string, queryObject: Object, options?: Object, sortOptions?: Object): any {
 	const db = await getDB();
 
-	let result = await db.collection(collection).find(queryObject).sort({createTime: -1});
+	let result = await db.collection(collection).find(queryObject);
+
+	if(sortOptions){
+		result = result.sort(sortOptions);
+	}
+
 	if(options){
 		result = result.skip(options.skip).limit(options.limit);
 	}

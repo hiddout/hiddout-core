@@ -73,7 +73,52 @@ async function lockPostHandler(req: Object, reply: Object): Object {
 	}
 }
 
+async function changePostLanguageHandler(req: Object, reply: Object): Object {
+	try {
+		const id = toDBId(req.params.postId);
+
+		const update = await dbCollectionUpdateOne('posts',
+			{_id: id},
+			{$set: { language: req.body.language} },
+		);
+
+		reply.type('application/json').code(200);
+		return HiddoutViewer.response({ changed: update.result.ok });
+	}catch (err) {
+		console.log(err.stack);
+		reply.type('application/json').code(500);
+		return { msg: SERVER_ERROR };
+	}
+}
+
 function admin(fastify: fastify, opts: Object, next: () => any): void {
+
+	fastify.route({
+		method: 'POST',
+		url: '/post/:postId/language',
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					language: { type: 'string' },
+				},
+				required: ['language'],
+			},
+			response: {
+				'200': {
+					type: 'object',
+					properties: {
+						encryptedData: { type: 'string' },
+						changed: { type: 'boolean' },
+					},
+				},
+			},
+		},
+		onRequest:(request, reply, done) => {
+			fastify.verifyAdminJWT(request, reply, done);
+		},
+		handler: changePostLanguageHandler,
+	});
 
 	fastify.route({
 		method: 'POST',

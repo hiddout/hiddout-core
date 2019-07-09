@@ -81,7 +81,7 @@ async function deleteAccountHandler(req: Object, reply: Object): Object {
 		});
 
 		if (!userInfos.length) {
-			reply.type('application/json').code(401);
+			reply.type('application/json').code(400);
 			return {
 				isDone: false,
 				msg: USERNAME_OR_PASSWORD_IS_WRONG,
@@ -134,11 +134,11 @@ async function deleteAccountHandler(req: Object, reply: Object): Object {
 				isDone: true,
 			});
 		} else {
-			reply.type('application/json').code(200);
-
-			return HiddoutViewer.response({
+			reply.type('application/json').code(400);
+			return {
 				isDone: false,
-			});
+				msg: USERNAME_OR_PASSWORD_IS_WRONG,
+			};
 		}
 
 	} catch (err) {
