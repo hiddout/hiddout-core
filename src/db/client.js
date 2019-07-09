@@ -9,7 +9,12 @@ export function toDBId(Id: string){
 
 export async function dbCollectionFind(collection: string, queryObject: Object, options?: Object): any {
 	const db = await getDB();
-	return await db.collection(collection).find(queryObject, options).toArray();
+
+	let result = await db.collection(collection).find(queryObject).sort({createTime: -1});
+	if(options){
+		result = result.skip(options.skip).limit(options.limit);
+	}
+	return result.toArray();
 }
 
 export async function dbCollectionUpdateOne(collection: string, ...queryObject:any): any {
