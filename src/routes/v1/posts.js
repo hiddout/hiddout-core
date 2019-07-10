@@ -24,7 +24,7 @@ async function getPostsHandler(req: Object, reply: Object): Object {
 			limit += 1;
 		}
 
-		const result = await dbCollectionFind('posts', queryObject, { limit: limit, skip: page * POST_NUMBER_EACH_PAGE }, {createTime: -1});
+		const result = await dbCollectionFind('posts', queryObject, { limit: limit, skip: page * POST_NUMBER_EACH_PAGE }, {lastUpdateTime: -1});
 		let isLatest = result.length < limit;
 
 		reply.type('application/json').code(200);
@@ -88,6 +88,7 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			up: 0,
 			down: 0,
 			lol: 0,
+			reply: 0,
 			isLock: false,
 			lockedFor:'',
 			createTime: timeNow,
@@ -124,6 +125,7 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 								language: { type:'string' },
 								createTime: { type: 'string' },
 								lastUpdateTime: { type: 'string' },
+								reply: { type: 'number' },
 								score: { type: 'number' },
 								up: { type: 'number' },
 								down: { type: 'number' },
