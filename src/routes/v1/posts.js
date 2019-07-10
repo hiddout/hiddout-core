@@ -3,7 +3,7 @@
 import { CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
 import {
 	dbCollectionFind,
-	dbCollectionInsertOne,
+	dbCollectionInsertOne, dbCollectionUpdateOne,
 	toDBId,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
@@ -94,6 +94,42 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			createTime: timeNow,
 			lastUpdateTime: timeNow,
 		});
+
+		const newSubscription = {
+			type: 'post',
+			subscriptionId: result.insertedId.toString(),
+			lastUpdateTime: timeNow,
+		};
+
+		const subscriptionsResult = await dbCollectionFind('subscriptions', {
+			userId: { $eq: req.user.userId },
+		});
+
+		let postSubscription = {
+				subscription: [newSubscription],
+			},update = null;
+
+		if (subscriptionsResult.length) {
+
+			postSubscription = subscriptionsResult[0];
+
+			postSubscription.subscription.push(newSubscription);
+
+			update = await dbCollectionUpdateOne(
+				'subscriptions',
+				{ userId: req.user.userId },
+				{
+					$set: postSubscription,
+				},
+			);
+		}
+
+		if (!update) {
+			await dbCollectionInsertOne('subscriptions', {
+				userId: req.user.userId,
+				...postSubscription,
+			});
+		}
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ insertedId: result.insertedId });
