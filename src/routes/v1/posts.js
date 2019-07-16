@@ -3,7 +3,7 @@
 import { CONTENT_IS_NOT_HERE, SERVER_ERROR } from '../../static/serverMessage';
 import {
 	dbCollectionFind,
-	dbCollectionInsertOne,
+	dbCollectionInsertOne, dbCollectionUpdateOne,
 	toDBId,
 } from '../../db/client';
 import { HiddoutViewer } from 'hiddout-viewer';
@@ -24,7 +24,7 @@ async function getPostsHandler(req: Object, reply: Object): Object {
 			limit += 1;
 		}
 
-		const result = await dbCollectionFind('posts', queryObject, { limit: limit, skip: page * POST_NUMBER_EACH_PAGE });
+		const result = await dbCollectionFind('posts', queryObject, { limit: limit, skip: page * POST_NUMBER_EACH_PAGE }, {lastUpdateTime: -1});
 		let isLatest = result.length < limit;
 
 		reply.type('application/json').code(200);
@@ -88,11 +88,48 @@ async function addPostHandler(req: Object, reply: Object): Object {
 			up: 0,
 			down: 0,
 			lol: 0,
+			reply: 0,
 			isLock: false,
 			lockedFor:'',
 			createTime: timeNow,
 			lastUpdateTime: timeNow,
 		});
+
+		const newSubscription = {
+			type: 'post',
+			subscriptionId: result.insertedId.toString(),
+			lastUpdateTime: timeNow,
+		};
+
+		const subscriptionsResult = await dbCollectionFind('subscriptions', {
+			userId: { $eq: req.user.userId },
+		});
+
+		let postSubscription = {
+				subscription: [newSubscription],
+			},update = null;
+
+		if (subscriptionsResult.length) {
+
+			postSubscription = subscriptionsResult[0];
+
+			postSubscription.subscription.push(newSubscription);
+
+			update = await dbCollectionUpdateOne(
+				'subscriptions',
+				{ userId: req.user.userId },
+				{
+					$set: postSubscription,
+				},
+			);
+		}
+
+		if (!update) {
+			await dbCollectionInsertOne('subscriptions', {
+				userId: req.user.userId,
+				...postSubscription,
+			});
+		}
 
 		reply.type('application/json').code(200);
 		return HiddoutViewer.response({ insertedId: result.insertedId });
@@ -121,8 +158,10 @@ function posts(fastify: fastify, opts: Object, next: () => any): void {
 								content: { type: 'string' },
 								board: { type: 'string' },
 								userId: { type: 'string' },
+								language: { type:'string' },
 								createTime: { type: 'string' },
 								lastUpdateTime: { type: 'string' },
+								reply: { type: 'number' },
 								score: { type: 'number' },
 								up: { type: 'number' },
 								down: { type: 'number' },
