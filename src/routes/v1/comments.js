@@ -67,7 +67,7 @@ async function addCommentHandler(req: Object, reply: Object): Object {
 
 		const update = await dbCollectionUpdateOne('posts',
 			{_id: dbId},
-			{$set: {lastUpdateTime: timeNow,reply: result.length + 1 }},
+			{$set: {lastUpdateTime: timeNow, reply: result.length + 1, lastReplier: req.user.userId }},
 		);
 
 		const added = await dbCollectionInsertOne('comments', {

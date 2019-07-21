@@ -32,7 +32,8 @@ async function getSubscriptionMessageHandler(
 						});
 						if (
 							queryResult[0].lastUpdateTime >
-							subscription[index].lastUpdateTime
+							subscription[index].lastUpdateTime &&
+							queryResult[0].lastReplier !== req.user.userId
 						) {
 							subscriptionMessages.push({
 								type: TYPE_POST,
