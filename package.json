@@ -23,7 +23,7 @@
     "@babel/preset-flow": "7.0.0",
     "@babel/register": "7.7.0",
     "babel-eslint": "10.0.1",
-    "core-js": "3.3.6",
+    "core-js": "3.4.1",
     "download": "^7.1.0",
     "eslint": "5.16.0",
     "expect.js": "0.3.1",
