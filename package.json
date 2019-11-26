@@ -12,7 +12,7 @@
     "fastify-swagger": "2.4.0",
     "fs-extra": "8.1.0",
     "hiddout-viewer": "0.1.12",
-    "mongodb": "3.3.4"
+    "mongodb": "3.3.5"
   },
   "devDependencies": {
     "@babel/cli": "7.7.0",
