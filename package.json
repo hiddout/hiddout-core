@@ -10,7 +10,7 @@
     "fastify-rate-limit": "2.2.0",
     "fastify-static": "2.5.1",
     "fastify-swagger": "2.4.0",
-    "fs-extra": "8.1.0",
+    "fs-extra": "9.0.0",
     "hiddout-viewer": "0.1.12",
     "mongodb": "3.5.3"
   },
