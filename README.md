@@ -1,4 +1,4 @@
-![Node.js CI](https://github.com/hiddout/hiddout-core/workflows/Node.js%20CI/badge.svg?branch=master)
+[![Node.js CI](https://github.com/hiddout/hiddout-core/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/hiddout/hiddout-core/actions?query=workflow%3A%22Node.js+CI%22)
 [![DeepScan grade](https://deepscan.io/api/teams/4291/projects/6035/branches/48238/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=4291&pid=6035&bid=48238)
 
 ### install
