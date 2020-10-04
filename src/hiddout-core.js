@@ -131,6 +131,9 @@ class HiddoutCore {
 		this._fastify.register(fastifyRateLimit, {
 			max: 20,
 			timeWindow: 5000,
+			keyGenerator: (request) => {
+				return request.req.headers['authorization'] || request.raw.ip;
+			},
 		});
 
 		this._fastify.register(fastifyStatic, {
